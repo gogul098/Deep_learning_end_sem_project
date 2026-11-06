@@ -30,7 +30,7 @@ The Hyena encoder reads the *whole* document in sub-quadratic time, so the LLM o
 | `system setup/app.py`, `tui.py`, `analyse.py` | Web app (FastAPI, port 7860), terminal UI, one-shot CLI |
 | `system setup/web/` | Web front-end and architecture explainer page |
 | `system setup/kaggle/` | Notebooks that generate questions, label them, and run the evaluation for the router |
-| `system setup/tests/` | Unit tests (`pytest`) |
+| `system setup/tests/` | Test scripts (run with `python -m tests.<name>`) |
 | `system setup/legal_kb/` | Offline legal knowledge base (statute cards + judgment passages, InLegalBERT embeddings) |
 | `system setup/legacy/` | Earlier (v7) versions of the app, kept for reference |
 | `results/` | Evaluation tables (CSV) and plots (PNG) |
@@ -99,7 +99,10 @@ python app.py                          # web app → http://127.0.0.1:7860   (ar
 python tui.py                          # terminal UI
 python analyse.py judgment.pdf         # one-shot analysis of a judgment
 python analyse.py test-case-files/ --json out.json   # every PDF in a folder → JSON
-python -m pytest tests                 # unit tests
+python -m tests.test_bayes             # Bayesian network check (CPU, no models needed)
+python -m tests.test_retriever sample_judgment.pdf   # retriever check (CPU)
+python -m tests.test_pipeline sample_judgment.pdf    # model pipeline (needs downloaded models)
+python -m tests.test_engine sample_judgment.pdf      # end-to-end
 ```
 
 Useful options: `--model <ollama-tag>` (chat model), `--verifier none` (Hyena encoder only, ~0.4 GB VRAM).
