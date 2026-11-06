@@ -6,7 +6,11 @@ os.environ.setdefault("HF_HUB_OFFLINE", "1")
 import numpy as np
 from ipc.retriever import BayesianRetriever, ChatRouter, ROOT
 
-sys.path.insert(0, os.path.join(ROOT, "models", "final"))
+try:                                    # trained model folder from models/paths.json (default: the repo's model_files/)
+    from ipc.pipeline import _paths
+    sys.path.insert(0, _paths(os.path.join(ROOT, "models"))["final"])
+except FileNotFoundError:
+    sys.path.insert(0, os.path.join(ROOT, "..", "model_files"))
 
 
 def show(r):

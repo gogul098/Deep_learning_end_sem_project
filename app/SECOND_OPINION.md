@@ -99,4 +99,4 @@ Tests and results:
 
 Optional: `FEATURES.md` (overview) and `compare_rerankers.py` (how recall was measured).
 
-**Do not attach** `download.sh` (it still contains a Hugging Face token), `.venv`, `models/` (weights), or `labels/` (large).
+**Do not attach** `.venv`, `models/` (weights), or `labels/` (large).

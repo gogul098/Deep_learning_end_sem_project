@@ -4,13 +4,12 @@ An offline assistant for Indian court judgments. You open a judgment (PDF), and 
 
 ## What you need
 
-- A Windows or Linux PC with an **NVIDIA GPU, 6 GB VRAM or more** (tested on an RTX 3050 8 GB).
+- A Windows or Linux PC with an **NVIDIA GPU, 6 GB VRAM or more** (developed on an RTX 3050 6 GB).
 - **Python 3.12**.
 - **Ollama**, from https://ollama.com.
 - About **15 GB of free disk** for the models.
-- A **Hugging Face account and token** with access to:
-  - `gogulakrishnan256/hyena-llama-legal-v7` (private: ask Girish to give your account access);
-  - `meta-llama/Llama-3.2-3B-Instruct` (request access on its page; approval is usually quick).
+- **Git LFS**, so that the trained model in `../model_files` is downloaded with the repo (`git lfs install` before cloning, or `git lfs pull` after).
+- No Hugging Face token: the trained model is in the repo, and the Llama base (`unsloth/Llama-3.2-3B-Instruct`) and InLegalBERT are public.
 
 ## Setup (once)
 
@@ -24,8 +23,7 @@ pip install -r requirements.txt
 
 ollama pull qwen2.5:7b                      # the chat model, ~4.7 GB
 
-$env:HF_TOKEN = "hf_..."                     # your own token: type it here, never save it in a file
-python download_model.py --repo gogulakrishnan256/hyena-llama-legal-v7
+python download_model.py                    # links ../model_files + downloads Llama base and InLegalBERT into .\models
 python download_reranker.py
 ```
 

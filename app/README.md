@@ -16,7 +16,7 @@ After the one-time model download **nothing leaves the machine**.
 ## Install (once)
 ```bash
 ./setup_arch.sh                         # uv + Python 3.12 venv + PyTorch (CUDA 12.6) + libraries (requirements.txt)
-HF_TOKEN=hf_xxx ./download.sh           # trained v7 model + Llama + InLegalBERT → ./models (needs internet once)
+./download.sh                           # links ../model_files (trained model) + downloads Llama + InLegalBERT → ./models (internet once)
 ```
 
 ## Use
@@ -134,7 +134,7 @@ python -m tests.test_engine judgment.pdf [ollama-model]           # analyse → 
 | `app.py` · `web/` | server · web app and architecture page (no external requests) |
 | `tui.py` · `analyse.py` | terminal UI · one-shot CLI |
 | `legal_kb/` · `procedural_kb.py` | offline library · CrPC/BNSS cards |
-| `models/final/legal_hybrid.py` | the exact code the model was trained with (imported, not edited) |
+| `../model_files/` | the trained model + `legal_hybrid.py`, the exact code it was trained with (linked through `models/paths.json`, imported, not edited) |
 | `legacy/` | the v7 `app.py`, `tui.py`, `augment.py` |
 | `setup_arch.sh` `download.sh` `ipc-assistant.service` | install, model download, optional systemd user service |
 

@@ -46,7 +46,9 @@ def cmd_fetch(a):
     for r in ev:
         if r["view"] == "full":
             test[r["key"].split("|")[0]] = r["gold"]
-    labels = torch.load(os.path.join(a.models, "final", "hybrid_model.pt"), map_location="cpu", weights_only=False)["label_names"]
+    final = json.load(open(os.path.join(a.models, "paths.json"))).get("final", "final")
+    final = final if os.path.isabs(final) else os.path.join(a.models, final)
+    labels = torch.load(os.path.join(final, "hybrid_model.pt"), map_location="cpu", weights_only=False)["label_names"]
     os.makedirs(os.path.join(a.out, "pdfs"), exist_ok=True)
     rows, rnd = [], random.Random(13)
     need_test = dict(test)

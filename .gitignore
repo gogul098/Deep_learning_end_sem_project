@@ -17,9 +17,9 @@ env/
 hf_token*
 
 # Downloaded models and caches (fetched by download_model.py / download.sh)
-system setup/models/
-system setup/.cache/
-system setup/bench_out/
+app/models/
+app/.cache/
+app/bench_out/
 
 # OS / editor
 .DS_Store

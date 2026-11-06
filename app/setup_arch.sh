@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# setup_arch.sh · one-time setup of the IPC Section Assistant (v7) on Arch Linux.
+# setup_arch.sh · one-time setup of the IPC Section Assistant on Arch Linux.
 #   ./setup_arch.sh                      → installs everything (asks for sudo only for pacman)
-#   HF_TOKEN=hf_xxx ./setup_arch.sh      → also downloads the trained model (otherwise run ./download.sh later)
+#   (then downloads the Llama base + InLegalBERT; the trained model itself is the repo's ../model_files)
 set -euo pipefail
 cd "$(dirname "$0")"
 say() { printf '\n\033[1;35m▶ %s\033[0m\n' "$*"; }
@@ -40,9 +40,7 @@ PY
 say "5/5 · trained model"
 if [[ -f models/paths.json ]]; then
     echo "model already downloaded (models/)"
-elif [[ -n "${HF_TOKEN:-}" ]]; then
-    ./download.sh
 else
-    echo "Next: HF_TOKEN=hf_xxx ./download.sh   (a READ token for your private repo; ~7.5 GB, once)"
+    ./download.sh
 fi
 echo; echo "Done. Start the web page with ./run_app.sh  ·  analyse a PDF with ./analyse.sh judgment.pdf"

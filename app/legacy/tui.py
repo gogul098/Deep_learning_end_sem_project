@@ -232,7 +232,7 @@ class FileOpenModal(ModalScreen[str]):
         with Vertical(id="modal-box"):
             yield Label("📂 [bold cyan]Open Court Judgment[/bold cyan] (PDF / TXT)", id="modal-title")
             yield Static("Enter path to judgment file:", id="modal-desc")
-            yield Input(placeholder="/home/raki/Downloads/judgment.pdf", id="modal-input")
+            yield Input(placeholder="~/Downloads/judgment.pdf", id="modal-input")
             with Horizontal(id="modal-actions"):
                 yield Button("Load & Analyze", variant="primary", id="modal-ok")
                 yield Button("Cancel", variant="default", id="modal-cancel")

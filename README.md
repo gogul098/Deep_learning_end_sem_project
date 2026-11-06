@@ -6,11 +6,11 @@ Deep Learning end-semester project. Given a full Indian Supreme Court judgment, 
 whether to answer from the judgment, search an offline legal library, or ask for clarification.
 
 ```
-judgment ─► sentences ─► InLegalBERT (frozen) ─► sentence vectors
-   ├─► Hyena encoder ×5 (long-context, cross-fitted)  ─► p_enc + evidence sentences
-   └─► TF-IDF + logistic regression                   ─► p_lex
-shortlist (top-12) ─► Llama-3.2-3B QLoRA verifier (listwise Yes/No) ─► p_llm
-stacked fusion (logistic regression) ─► final IPC sections
+judgment ─► sentences ─► InLegalBERT (frozen, overlapping windows) ─► one vector per sentence
+   ─► Hyena encoder ensemble over ALL sentences (FFT long convolution, label-wise attention) ─► P_enc for 100 sections + evidence
+   ─► shortlist of high-recall candidates
+   ─► Llama-3.2-3B QLoRA verifier reads opening + key passages + evidence, answers "Section 302: yes/no" ─► P_llm
+   ─► fusion α·P_enc + (1−α)·P_llm, per-section thresholds tuned on dev ─► final IPC sections
 ```
 
 The Hyena encoder reads the *whole* document in sub-quadratic time, so the LLM only verifies a ~3k-token prompt. Peak VRAM stays flat
@@ -22,21 +22,23 @@ The Hyena encoder reads the *whole* document in sub-quadratic time, so the LLM o
 
 | Path | Contents |
 |---|---|
-| `model_files/hyena_llama_legal_v8.ipynb` | **Training notebook** (Kaggle, multi-GPU): data preparation, Hyena encoder, lexical model, Llama QLoRA verifier, fusion, evaluation |
-| `model_files/hybrid_model.pt` | Trained Hyena encoders + fusion checkpoint (Git LFS) |
-| `model_files/llama_lora/` | Trained Llama-3.2-3B LoRA verifier adapter + tokenizer (Git LFS) |
-| `system setup/` | **Application source code**: the offline assistant built on the trained model |
-| `system setup/ipc/` | Core package: `pipeline.py` (model inference), `engine.py`, `retriever.py` + `bayes.py` (Bayesian router), `reranker.py`, `grounding.py`, `llm.py`, `statutes.py`, … |
-| `system setup/app.py`, `tui.py`, `analyse.py` | Web app (FastAPI, port 7860), terminal UI, one-shot CLI |
-| `system setup/web/` | Web front-end and architecture explainer page |
-| `system setup/kaggle/` | Notebooks that generate questions, label them, and run the evaluation for the router |
-| `system setup/tests/` | Test scripts (run with `python -m tests.<name>`) |
-| `system setup/legal_kb/` | Offline legal knowledge base (statute cards + judgment passages, InLegalBERT embeddings) |
-| `system setup/legacy/` | Earlier (v7) versions of the app, kept for reference |
+| `model_files/` | **The trained model (v7)**, which the app loads directly from here |
+| `model_files/hybrid_model.pt` | Hyena encoder ensemble + fusion weights, thresholds, label names (Git LFS) |
+| `model_files/llama_lora/` | Llama-3.2-3B QLoRA verifier adapter + tokenizer (Git LFS) |
+| `model_files/legal_hybrid.py`, `hybrid_config.py` | Model code and training configuration the checkpoint was trained with |
+| `model_files/hyena_llama_legal_v8.ipynb` | Kaggle training notebook, latest version (v8 adds a TF-IDF retriever and stacked fusion, see "Notes") |
+| `app/` | **Application source code**: the offline assistant built on the trained model |
+| `app/ipc/` | Core package: `pipeline.py` (model inference), `engine.py`, `retriever.py` + `bayes.py` (Bayesian router), `reranker.py`, `grounding.py`, `llm.py`, `statutes.py`, … |
+| `app/app.py`, `tui.py`, `analyse.py` | Web app (FastAPI, port 7860), terminal UI, one-shot CLI |
+| `app/web/` | Web front-end and architecture explainer page |
+| `app/kaggle/` | Notebooks that generate questions, label them, and run the evaluation for the router |
+| `app/tests/` | Test scripts (run with `python -m tests.<name>`) |
+| `app/legal_kb/` | Offline legal knowledge base (statute cards + judgment passages, InLegalBERT embeddings) |
+| `app/legacy/` | Earlier (v7) versions of the app, kept for reference |
 | `results/` | Evaluation tables (CSV) and plots (PNG) |
 
-More detailed documentation: [`system setup/README.md`](system%20setup/README.md) (full user guide),
-[`TESTING.md`](system%20setup/TESTING.md), [`FEATURES.md`](system%20setup/FEATURES.md), [`KAGGLE.md`](system%20setup/KAGGLE.md).
+More detailed documentation: [`app/README.md`](app/README.md) (full user guide),
+[`TESTING.md`](app/TESTING.md), [`FEATURES.md`](app/FEATURES.md), [`KAGGLE.md`](app/KAGGLE.md).
 
 ---
 
@@ -49,9 +51,9 @@ More detailed documentation: [`system setup/README.md`](system%20setup/README.md
 | **Leakage control** | Section numbers are **masked** in the text ("Section 302" → hidden), so the model has to infer sections from the facts. A second **facts-only** view also removes every sentence that cites a section |
 | **Split (temporal)** | train: judgments ≤ 2020 · dev: 2021–2022 · test: ≥ 2023 (no case appears in two splits) |
 | **Evaluation set** | 150 test judgments, in three length bands of 50: short (~4k tokens), medium (~8k), long (~18k) |
-| **Pretrained models** | [`law-ai/InLegalBERT`](https://huggingface.co/law-ai/InLegalBERT) (frozen sentence encoder), [`meta-llama/Llama-3.2-3B-Instruct`](https://huggingface.co/meta-llama/Llama-3.2-3B-Instruct) (verifier base, QLoRA 4-bit) |
-| **Router data** | ~3,000 auto-graded questions over ~300 judgments (`make_questions.py` → `label_ipc.py`). Labelled outputs: `system setup/ipc_qwen2.5-7b_shard*.jsonl` |
-| **Included samples** | `system setup/test-case-files/*.pdf` (4 judgments), `sample_judgment.pdf`, `stress_cases.json`, `eval_questions.json` |
+| **Pretrained models** | [`law-ai/InLegalBERT`](https://huggingface.co/law-ai/InLegalBERT) (frozen sentence encoder), [`unsloth/Llama-3.2-3B-Instruct`](https://huggingface.co/unsloth/Llama-3.2-3B-Instruct) (verifier base: ungated mirror of Meta's Llama-3.2-3B-Instruct, QLoRA 4-bit) |
+| **Router data** | ~3,000 auto-graded questions over ~300 judgments (`make_questions.py` → `label_ipc.py`). Labelled outputs: `app/ipc_qwen2.5-7b_shard*.jsonl` |
+| **Included samples** | `app/test-case-files/*.pdf` (4 judgments), `sample_judgment.pdf`, `stress_cases.json`, `eval_questions.json` |
 
 The training notebook downloads and prepares the full corpus itself (section 5, `prepare_data.py`). The raw corpus is not stored in
 this repository because of its size.
@@ -66,7 +68,8 @@ this repository because of its size.
 ```bash
 git lfs install
 git clone https://github.com/gogul098/Deep_learning_end_sem_project.git
-cd Deep_learning_end_sem_project/"system setup"
+cd Deep_learning_end_sem_project/app
+git lfs pull                           # make sure model_files/ holds the real weights, not LFS pointers
 
 python -m venv .venv
 source .venv/bin/activate              # Windows: .venv\Scripts\activate
@@ -74,25 +77,29 @@ pip install torch --index-url https://download.pytorch.org/whl/cu126
 pip install -r requirements.txt
 ```
 
-**Models.** You need a Hugging Face token with access to Llama-3.2-3B. Set it as an environment variable **in your shell only**, and
-never write it into a file in this repo:
+**Models.** No Hugging Face token is needed. The trained model is already in `model_files/`, and the base models are public:
 
 ```bash
-export HF_TOKEN=<your token>           # PowerShell: $env:HF_TOKEN = "<your token>"
-python download_model.py --repo <hf-user>/hyena-llama-legal-v7   # → ./models (trained model, Llama base, InLegalBERT)
-python download_reranker.py
+python download_model.py               # links ../model_files + downloads Llama-3.2-3B base & InLegalBERT → ./models
+python download_reranker.py            # cross-encoder reranker (~90 MB)
 ollama pull qwen2.5:7b                 # optional chat model
 ```
 
-`download_model.py` places the files in `system setup/models/final/` (`hybrid_model.pt`, `llama_lora/`, `legal_hybrid.py`), which is
-where the app looks for them (`LEGAL_MODELS_DIR` overrides this path). The checkpoint in `model_files/` is the same trained model, kept in
-the repo as the submitted artifact.
+**How the app finds the model:** `download_model.py` writes `app/models/paths.json`:
 
-On Arch Linux, `./setup_arch.sh` and `HF_TOKEN=... ./download.sh` do all of the above.
+```json
+{"final": "../../model_files", "base_model": "llama", "legal_encoder": "inlegalbert"}
+```
+
+`ipc/pipeline.py` reads this file and loads `hybrid_model.pt`, `llama_lora/` and `legal_hybrid.py` from `model_files/`.
+There is only one copy of the weights. To use a model from a Hugging Face repo instead, run
+`python download_model.py --repo <user>/hyena-llama-legal-v7`. For a private repo, set `HF_TOKEN` in your shell only, never in a file.
+
+On Arch Linux, `./setup_arch.sh` does all of the above (it runs `./download.sh` itself).
 
 ## Execution
 
-Run these from `system setup/`:
+Run these from `app/`:
 
 ```bash
 python app.py                          # web app → http://127.0.0.1:7860   (architecture page: /architecture)
@@ -108,7 +115,8 @@ python -m tests.test_engine sample_judgment.pdf      # end-to-end
 Useful options: `--model <ollama-tag>` (chat model), `--verifier none` (Hyena encoder only, ~0.4 GB VRAM).
 
 **Reproducing training:** open `model_files/hyena_llama_legal_v8.ipynb` on Kaggle (GPU T4 ×2, Internet on), add `HF_TOKEN` under
-*Add-ons → Secrets*, and run all cells. Results are written to `ablation_results.csv` and the other files listed below.
+*Add-ons → Secrets* (only needed to push checkpoints to the Hub), and run all cells. The notebook writes `ablation_results.csv`, the
+model files and the other results listed below.
 
 ---
 
@@ -145,6 +153,9 @@ Facts-only view (all citing sentences removed): hybrid micro-F1 **0.618** agains
 ---
 
 ## Notes
+* **Model versions:** the model in `model_files/` and every number in `results/` come from the **v7** run (Hyena encoders + Llama
+  verifier + α-fusion, trained 2026-10-13). The app is built for this checkpoint. `hyena_llama_legal_v8.ipynb` is the next iteration of the
+  training notebook (adds a TF-IDF lexical retriever, a listwise verifier and stacked fusion). The v8 checkpoint is not used by the app.
 * No secrets are stored in this repository. Tokens are read from the `HF_TOKEN` environment variable or from Kaggle Secrets at runtime.
   `.gitignore` excludes `.env` files, virtual environments and downloaded models.
 * Large binaries (`*.pt`, `*.safetensors`, `*.npy`) are stored with **Git LFS**.

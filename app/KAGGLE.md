@@ -20,7 +20,7 @@ The labels are valid for your PC because it's the same `qwen2.5:7b` model file. 
 ## 0. One-time preparation (on your PC)
 
 1. **Hugging Face tokens.** Revoke the old token that was in `download_model.py` (it has been removed from the file). Create one new token with **write** access; write access includes read. Your account needs access to `meta-llama/Llama-3.2-3B-Instruct`.
-2. **Zip the code.** Zip the *contents* of `ipc-assistant(updated)`, leaving out `.venv`, `models`, `.cache` and `bench_out`. You need `ipc/`, `legal_kb/`, `router_calibration/` and all the `.py` files. In PowerShell, from inside the folder:
+2. **Zip the code.** Zip the *contents* of the `app` folder, leaving out `.venv`, `models`, `.cache` and `bench_out`. You need `ipc/`, `legal_kb/`, `router_calibration/` and all the `.py` files. In PowerShell, from inside the folder:
    ```powershell
    Get-ChildItem -Exclude .venv,models,.cache,bench_out | Compress-Archive -DestinationPath ..\ipc-code.zip -Force
    ```
