@@ -22,11 +22,10 @@ The Hyena encoder reads the *whole* document in sub-quadratic time, so the LLM o
 
 | Path | Contents |
 |---|---|
-| `model_files/` | **The trained model (v7)**, which the app loads directly from here |
+| `model_files/` | **The trained model**, which the app loads directly from here |
 | `model_files/hybrid_model.pt` | Hyena encoder ensemble + fusion weights, thresholds, label names (Git LFS) |
 | `model_files/llama_lora/` | Llama-3.2-3B QLoRA verifier adapter + tokenizer (Git LFS) |
-| `model_files/legal_hybrid.py`, `hybrid_config.py` | Model code and training configuration the checkpoint was trained with |
-| `model_files/hyena_llama_legal_v8.ipynb` | Kaggle training notebook, latest version (v8 adds a TF-IDF retriever and stacked fusion, see "Notes") |
+| `model_files/hyena_llama_legal_v8.ipynb` | Kaggle training notebook: data preparation, training and evaluation |
 | `app/` | **Application source code**: the offline assistant built on the trained model |
 | `app/ipc/` | Core package: `pipeline.py` (model inference), `engine.py`, `retriever.py` + `bayes.py` (Bayesian router), `reranker.py`, `grounding.py`, `llm.py`, `statutes.py`, … |
 | `app/app.py`, `tui.py`, `analyse.py` | Web app (FastAPI, port 7860), terminal UI, one-shot CLI |
@@ -34,7 +33,7 @@ The Hyena encoder reads the *whole* document in sub-quadratic time, so the LLM o
 | `app/kaggle/` | Notebooks that generate questions, label them, and run the evaluation for the router |
 | `app/tests/` | Test scripts (run with `python -m tests.<name>`) |
 | `app/legal_kb/` | Offline legal knowledge base (statute cards + judgment passages, InLegalBERT embeddings) |
-| `app/legacy/` | Earlier (v7) versions of the app, kept for reference |
+| `app/legacy/` | Earlier versions of the app, kept for reference |
 | `results/` | Evaluation tables (CSV) and plots (PNG) |
 
 More detailed documentation: [`app/README.md`](app/README.md) (full user guide),
@@ -91,9 +90,9 @@ ollama pull qwen2.5:7b                 # optional chat model
 {"final": "../../model_files", "base_model": "llama", "legal_encoder": "inlegalbert"}
 ```
 
-`ipc/pipeline.py` reads this file and loads `hybrid_model.pt`, `llama_lora/` and `legal_hybrid.py` from `model_files/`.
+`ipc/pipeline.py` reads this file and loads `hybrid_model.pt` and `llama_lora/` from `model_files/`.
 There is only one copy of the weights. To use a model from a Hugging Face repo instead, run
-`python download_model.py --repo <user>/hyena-llama-legal-v7`. For a private repo, set `HF_TOKEN` in your shell only, never in a file.
+`python download_model.py --repo <hf-user>/<model-repo>`. For a private repo, set `HF_TOKEN` in your shell only, never in a file.
 
 On Arch Linux, `./setup_arch.sh` does all of the above (it runs `./download.sh` itself).
 
@@ -153,9 +152,7 @@ Facts-only view (all citing sentences removed): hybrid micro-F1 **0.618** agains
 ---
 
 ## Notes
-* **Model versions:** the model in `model_files/` and every number in `results/` come from the **v7** run (Hyena encoders + Llama
-  verifier + α-fusion, trained 2026-10-13). The app is built for this checkpoint. `hyena_llama_legal_v8.ipynb` is the next iteration of the
-  training notebook (adds a TF-IDF lexical retriever, a listwise verifier and stacked fusion). The v8 checkpoint is not used by the app.
+* The included checkpoint and the numbers in `results/` come from an earlier run of this training pipeline; the notebook is its latest version.
 * No secrets are stored in this repository. Tokens are read from the `HF_TOKEN` environment variable or from Kaggle Secrets at runtime.
   `.gitignore` excludes `.env` files, virtual environments and downloaded models.
 * Large binaries (`*.pt`, `*.safetensors`, `*.npy`) are stored with **Git LFS**.
