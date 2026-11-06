@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ipynb_checkpoints/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Secrets / environment variables (never commit tokens)
+.env
+.env.*
+*.env
+.huggingface/
+hf_token*
+
+# Downloaded models and caches (fetched by download_model.py / download.sh)
+system setup/models/
+system setup/.cache/
+system setup/bench_out/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
