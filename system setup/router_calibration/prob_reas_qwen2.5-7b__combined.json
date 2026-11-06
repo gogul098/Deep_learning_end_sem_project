@@ -1,0 +1,368 @@
+{
+ "meta": {
+  "labels": [
+   "/mnt/attach/outputs/labels/Qwen_Qwen2.5-7B-Instruct-bfloat16.jsonl",
+   "/mnt/attach/outputs/labels/Qwen_Qwen2.5-7B-Instruct-bfloat16__kb_hybrid.jsonl"
+  ],
+  "n": 6000,
+  "fail_rate": 0.621,
+  "target": "serving fails = wrong answer OR 'I don't know'",
+  "prior_strength": 5.0,
+  "serve_below": 0.3054,
+  "target_fail": 0.2,
+  "llm_profile": {
+   "llm": "Qwen/Qwen2.5-7B-Instruct-bfloat16",
+   "embedding_model": "sentence-transformers/all-MiniLM-L6-v2",
+   "reranker_model": "cross-encoder/ms-marco-MiniLM-L-6-v2",
+   "spacy_model": "en_core_web_sm",
+   "kb": "/kaggle/working/project/kb",
+   "kb_passages": 4633,
+   "passages_in_prompt": 3
+  }
+ },
+ "levels": {
+  "QueryLength": 2,
+  "QuestionType": 2,
+  "EntitySpecificity": 2,
+  "TopicComplexity": 2,
+  "FAISSVectorDistance": 3,
+  "RerankerScore": 4,
+  "ChunkDensity": 3,
+  "SourceAuthority": 2,
+  "FollowUpStatus": 2,
+  "QueryReformulation": 2,
+  "UnresolvedReferences": 2,
+  "EntityPopularity": 3,
+  "TemporalSensitivity": 2,
+  "DomainShift": 3
+ },
+ "cutoffs": {
+  "QueryLength": {
+   "cuts": [
+    5.0
+   ],
+   "learned": true,
+   "info_gain": 0.0221
+  },
+  "EntitySpecificity": {
+   "cuts": [
+    1.0
+   ],
+   "learned": true,
+   "info_gain": 0.0476
+  },
+  "TopicComplexity": {
+   "cuts": [
+    1.0
+   ],
+   "learned": true,
+   "info_gain": 0.0024
+  },
+  "FAISSVectorDistance": {
+   "cuts": [
+    0.4347305,
+    0.51225612
+   ],
+   "learned": true,
+   "info_gain": 0.1641
+  },
+  "RerankerScore": {
+   "cuts": [
+    0.998856,
+    0.9368628,
+    0.5371557000000006
+   ],
+   "learned": true,
+   "info_gain": 0.2442
+  },
+  "ChunkDensity": {
+   "cuts": [
+    1.4200000000005275,
+    1.0
+   ],
+   "learned": true,
+   "info_gain": 0.1642
+  },
+  "SourceAuthority": {
+   "cuts": [
+    0.8
+   ],
+   "learned": true,
+   "info_gain": 0.0038
+  },
+  "QueryReformulation": {
+   "cuts": [
+    0.4651674800000001
+   ],
+   "learned": true,
+   "info_gain": 0.0052
+  },
+  "UnresolvedReferences": {
+   "cuts": [
+    0.0
+   ],
+   "learned": true,
+   "info_gain": 0.0204
+  },
+  "EntityPopularity": {
+   "cuts": [
+    61406.000000000044,
+    112.0
+   ],
+   "learned": true,
+   "info_gain": 0.0164
+  },
+  "DomainShift": {
+   "cuts": [
+    0.4271006,
+    0.26106100000000004
+   ],
+   "learned": true,
+   "info_gain": 0.0105
+  }
+ },
+ "inputs": {
+  "QueryLength": [
+   0.87585,
+   0.12415
+  ],
+  "QuestionType": [
+   0.95908,
+   0.04092
+  ],
+  "EntitySpecificity": [
+   0.78918,
+   0.21082
+  ],
+  "TopicComplexity": [
+   0.89904,
+   0.10096
+  ],
+  "FAISSVectorDistance": [
+   0.50012,
+   0.18,
+   0.31988
+  ],
+  "RerankerScore": [
+   0.28047,
+   0.31966,
+   0.10001,
+   0.29985
+  ],
+  "ChunkDensity": [
+   0.42015,
+   0.28693,
+   0.29292
+  ],
+  "SourceAuthority": [
+   0.88251,
+   0.11749
+  ],
+  "FollowUpStatus": [
+   0.88152,
+   0.11848
+  ],
+  "QueryReformulation": [
+   0.84058,
+   0.15942
+  ],
+  "UnresolvedReferences": [
+   0.91503,
+   0.08497
+  ],
+  "EntityPopularity": [
+   0.17959,
+   0.60212,
+   0.21829
+  ],
+  "TemporalSensitivity": [
+   0.98984,
+   0.01016
+  ],
+  "DomainShift": [
+   0.40029,
+   0.49969,
+   0.10002
+  ]
+ },
+ "bottlenecks": {
+  "QueryAmbiguity": {
+   "parents": [
+    "QueryLength",
+    "QuestionType",
+    "EntitySpecificity",
+    "TopicComplexity"
+   ],
+   "p_high": [
+    0.00231,
+    0.67166,
+    0.12391,
+    0.5417,
+    0.28967,
+    0.50236,
+    0.60905,
+    0.94518,
+    0.16955,
+    0.63,
+    0.66922,
+    0.93,
+    0.72053,
+    0.98,
+    0.98159,
+    0.98
+   ]
+  },
+  "ContextDeficit": {
+   "parents": [
+    "FAISSVectorDistance",
+    "RerankerScore",
+    "ChunkDensity",
+    "SourceAuthority"
+   ],
+   "p_high": [
+    0.1208,
+    0.1137,
+    0.0103,
+    0.12187,
+    0.23,
+    0.38,
+    0.37665,
+    0.18114,
+    0.4423,
+    0.25735,
+    0.34667,
+    0.49667,
+    0.48012,
+    0.34729,
+    0.67739,
+    0.31567,
+    0.46333,
+    0.61333,
+    0.38,
+    0.53,
+    0.63962,
+    0.53042,
+    0.86319,
+    0.58326,
+    0.16319,
+    0.17708,
+    0.17981,
+    0.17718,
+    0.33,
+    0.48,
+    0.55833,
+    0.19494,
+    0.54164,
+    0.26607,
+    0.44667,
+    0.59667,
+    0.75177,
+    0.42804,
+    0.82129,
+    0.28494,
+    0.56333,
+    0.71333,
+    0.48,
+    0.63,
+    0.82017,
+    0.73,
+    0.946,
+    0.75478,
+    0.27044,
+    0.38,
+    0.205,
+    0.30974,
+    0.43,
+    0.58,
+    0.59249,
+    0.43955,
+    0.56657,
+    0.19581,
+    0.54667,
+    0.69667,
+    0.87166,
+    0.48435,
+    0.86503,
+    0.43843,
+    0.66333,
+    0.81333,
+    0.58,
+    0.73,
+    0.8443,
+    0.73449,
+    0.99617,
+    0.87678
+   ]
+  },
+  "IntentUncertainty": {
+   "parents": [
+    "FollowUpStatus",
+    "QueryReformulation",
+    "UnresolvedReferences"
+   ],
+   "p_high": [
+    0.00698,
+    0.31129,
+    0.11014,
+    0.82038,
+    0.40814,
+    0.91225,
+    0.83472,
+    0.96573
+   ]
+  },
+  "KnowledgeGap": {
+   "parents": [
+    "EntityPopularity",
+    "TemporalSensitivity",
+    "DomainShift"
+   ],
+   "p_high": [
+    0.00576,
+    0.24362,
+    0.23428,
+    0.33521,
+    0.46902,
+    0.6154,
+    0.48091,
+    0.63799,
+    0.30606,
+    0.51382,
+    0.56602,
+    0.74021,
+    0.1121,
+    0.16153,
+    0.37337,
+    0.67248,
+    0.74518,
+    0.92478
+   ]
+  }
+ },
+ "risk": {
+  "parents": [
+   "QueryAmbiguity",
+   "ContextDeficit",
+   "IntentUncertainty",
+   "KnowledgeGap"
+  ],
+  "p_high": [
+   0.0017,
+   0.43793,
+   0.352,
+   0.71914,
+   0.98647,
+   0.98398,
+   0.96451,
+   0.86734,
+   0.65976,
+   0.61049,
+   0.93572,
+   0.93546,
+   0.90493,
+   0.97359,
+   0.99748,
+   0.99265
+  ]
+ }
+}

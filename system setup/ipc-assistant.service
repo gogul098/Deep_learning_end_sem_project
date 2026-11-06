@@ -1,0 +1,14 @@
+# Optional: run the web page automatically at login (systemd user service).
+#   mkdir -p ~/.config/systemd/user && cp ipc-assistant.service ~/.config/systemd/user/
+#   edit WorkingDirectory below to this folder, then:  systemctl --user enable --now ipc-assistant
+[Unit]
+Description=IPC Section Assistant (offline legal AI)
+After=graphical-session.target
+
+[Service]
+WorkingDirectory=%h/ipc-assistant
+ExecStart=%h/ipc-assistant/run_app.sh
+Restart=on-failure
+
+[Install]
+WantedBy=default.target

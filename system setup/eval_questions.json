@@ -1,0 +1,12 @@
+[
+ {"role": "neutral",     "q": "PASTE PROMPT 1 (ballistic evidence & exact service weapon)"},
+ {"role": "accused",     "q": "PASTE PROMPT 2 (show-cause notice & right of hearing)"},
+ {"role": "complainant", "q": "PASTE PROMPT 3 (weapon swap, misfire, false reporting under IPC/BNS)"},
+ {"role": "neutral",     "q": "PASTE PROMPT 4 (Police Act provision vs Article 311)"},
+ {"role": "accused",     "q": "PASTE PROMPT 5 (media evidence and rebuttals to accidental fire)"},
+ {"role": "neutral",     "q": "PASTE PROMPT 6 (medical officer findings on entry wound & trajectory)"},
+ {"role": "accused",     "q": "PASTE PROMPT 7 (challenging contractual disengagement on misconduct grounds)"},
+ {"role": "complainant", "q": "PASTE PROMPT 8 (issued vs accounted ammunition)"},
+ {"role": "neutral",     "q": "PASTE PROMPT 9 (termination simpliciter vs stigmatic termination)"},
+ {"role": "neutral",     "q": "PASTE PROMPT 10 (High Court writ remedy for ex-parte termination)"}
+]

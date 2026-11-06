@@ -1,0 +1,14 @@
+# Install PyTorch with CUDA FIRST (see README), then:  pip install -r requirements.txt
+transformers>=4.56,<5
+peft
+accelerate
+bitsandbytes>=0.45        # 4-bit Llama on an NVIDIA GPU
+huggingface_hub
+requests                  # IndiaCode statute lookups (ipc/statutes.py)
+pymupdf                   # PDF -> text
+numpy
+fastapi                   # the local web server (web app, architecture page, API)
+uvicorn
+textual                   # terminal UI
+rich
+# Optional, only to run tests/test_bayes.py --pgmpy against the reference implementation: pgmpy (install it in a separate venv)

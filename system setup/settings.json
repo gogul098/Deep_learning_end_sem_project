@@ -1,0 +1,5 @@
+{
+ "model": "qwen2.5:7b",
+ "verifier": "llama",
+ "role": "accused"
+}

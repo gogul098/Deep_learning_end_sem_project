@@ -1,0 +1,7 @@
+view,length,docs,"Llama zero-shot · key passages, lists sections","Fine-tuned Llama · key passages, lists sections",Hyena encoder ensemble (no LLM),Hyena encoder ensemble + per-section thresholds,Llama zero-shot · verifies encoder shortlist,Fine-tuned verifier · encoder shortlist,Fine-tuned verifier · FREQUENCY shortlist (no encoder),Hybrid fused · one threshold,Hybrid fused · per-section thresholds (ours)
+full,"short (median ~4,135 tokens)",50,0.363,0.535,0.64,0.655,0.561,0.678,0.51,0.68,0.695
+full,"medium (median ~7,899 tokens)",50,0.342,0.529,0.63,0.625,0.54,0.645,0.49,0.66,0.671
+full,"long (median ~18,130 tokens)",50,0.409,0.487,0.6,0.58,0.505,0.62,0.47,0.635,0.648
+facts,"short (median ~4,135 tokens)",50,0.383,0.511,0.62,0.635,0.55,0.64,0.519,0.66,0.668
+facts,"medium (median ~7,899 tokens)",50,0.313,0.527,0.61,0.615,0.53,0.62,0.507,0.635,0.644
+facts,"long (median ~18,130 tokens)",50,0.347,0.462,0.585,0.58,0.515,0.605,0.455,0.615,0.622

@@ -1,0 +1,11 @@
+doc tokens,system,LLM tokens,peak VRAM GB,time s
+2048,"Hybrid v7 (ours): Hyena reads all, Llama verifies ~3k tokens",2444,4.35,10.51
+2048,Plain Llama: full attention over the whole judgment,2150,3.82,1.49
+4096,"Hybrid v7 (ours): Hyena reads all, Llama verifies ~3k tokens",2393,4.34,6.45
+4096,Plain Llama: full attention over the whole judgment,4205,3.82,2.41
+8192,"Hybrid v7 (ours): Hyena reads all, Llama verifies ~3k tokens",2403,4.36,6.68
+8192,Plain Llama: full attention over the whole judgment,8285,3.82,4.72
+16377,"Hybrid v7 (ours): Hyena reads all, Llama verifies ~3k tokens",2364,4.31,6.85
+16377,Plain Llama: full attention over the whole judgment,16470,4.67,11.5
+32768,"Hybrid v7 (ours): Hyena reads all, Llama verifies ~3k tokens",2609,4.62,8.2
+32768,Plain Llama: full attention over the whole judgment,-,OOM,-

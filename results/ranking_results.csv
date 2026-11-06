@@ -1,0 +1,5 @@
+view,system,recall@1,recall@3,recall@5,recall@10,precision@1
+full,Hyena encoder ensemble,0.591,0.623,0.684,0.751,0.712
+full,Hybrid fused (ours),0.612,0.645,0.712,0.786,0.753
+facts,Hyena encoder ensemble,0.588,0.615,0.679,0.745,0.695
+facts,Hybrid fused (ours),0.605,0.638,0.705,0.772,0.734

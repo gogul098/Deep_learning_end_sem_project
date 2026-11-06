@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>IPC Assistant · Architecture</title>
+<style>
+:root{--bg:#0d1117;--panel:#161b22;--line:#30363d;--text:#c9d1d9;--dim:#8b949e;--hi:#f0f6fc;--blue:#38bdf8;--green:#3fb950;--amber:#d29922;--red:#f85149;--violet:#a78bfa;--node:#1c232d;color-scheme:dark}
+@media (prefers-color-scheme:light){:root{--bg:#f6f8fa;--panel:#fff;--line:#d0d7de;--text:#1f2328;--dim:#59636e;--hi:#000;--blue:#0969da;--green:#1a7f37;--amber:#9a6700;--red:#cf222e;--violet:#6639ba;--node:#f0f3f6;color-scheme:light}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:14px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif}
+header{position:sticky;top:0;z-index:5;background:var(--panel);border-bottom:1px solid var(--line);padding:10px 16px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+header h1{font-size:15px;margin:0;color:var(--hi)}header h1 b{color:var(--blue)}
+.sp{flex:1}
+a.btn,button,select,input[type=text]{font:inherit;color:var(--text);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:6px 10px;text-decoration:none;cursor:pointer}
+a.btn:hover,button:hover:not(:disabled){border-color:var(--blue)}button:disabled{opacity:.5}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}.seg button{border:0;border-radius:0}.seg button.on{background:var(--blue);color:#04121c;font-weight:600}
+.chip{border:1px solid var(--line);border-radius:999px;padding:2px 10px;font-size:12px;color:var(--dim);white-space:nowrap}.chip.ok{color:var(--green);border-color:var(--green)}.chip.wait{color:var(--amber);border-color:var(--amber)}
+main{max-width:1240px;margin:0 auto;padding:16px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,360px);gap:16px;align-items:start}
+@media(max-width:980px){main{grid-template-columns:minmax(0,1fr)}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:16px}
+.card h2{font-size:12px;text-transform:uppercase;letter-spacing:.8px;color:var(--dim);margin:0 0 10px;font-weight:600}
+.scroll{overflow-x:auto}
+svg{display:block;width:100%;min-width:700px;height:auto}
+.lane{fill:none;stroke:var(--line);stroke-dasharray:4 4;rx:12}
+.lane-t{fill:var(--dim);font-size:11px;letter-spacing:1px;text-transform:uppercase}
+.node rect{fill:var(--node);stroke:var(--line);stroke-width:1.2;rx:9;transition:stroke .2s,fill .2s}
+.node{cursor:pointer}.node:hover rect{stroke:var(--blue)}
+.node.sel rect{stroke:var(--blue);stroke-width:2}
+.node text{pointer-events:none}.node .t{fill:var(--hi);font-size:12.5px;font-weight:600}.node .s{fill:var(--dim);font-size:10.5px}
+.node .dev{font-size:9.5px;font-weight:700}.dev.gpu{fill:var(--green)}.dev.cpu{fill:var(--violet)}.dev.io{fill:var(--dim)}.dev.ext{fill:var(--amber)}
+.node .ms{fill:var(--blue);font-size:10.5px;font-variant-numeric:tabular-nums}
+.node.run rect{stroke:var(--blue);stroke-width:2.2;fill:#38bdf81f}
+.node.done rect{stroke:var(--green)}
+.node.cached rect{stroke:var(--dim);stroke-dasharray:3 3}
+.node.off rect{opacity:.45}
+@keyframes pulse{50%{stroke-width:4;stroke-opacity:.5}}.node.run rect{animation:pulse 1s ease-in-out infinite}
+.edge{fill:none;stroke:var(--dim);stroke-width:1.4;opacity:.7}.edge.dash{stroke-dasharray:5 4}
+.edge.on{stroke:var(--blue);opacity:1;stroke-width:2.2;stroke-dasharray:6 5;animation:flow .7s linear infinite}
+@keyframes flow{to{stroke-dashoffset:-11}}
+.elabel{fill:var(--dim);font-size:10px}
+.route.hit rect{stroke:var(--amber);stroke-width:2.4;fill:#d299221f}
+#side h3{margin:0 0 4px;color:var(--hi);font-size:16px}
+#side .tags{margin:4px 0 10px;display:flex;gap:6px;flex-wrap:wrap}
+#side p{margin:6px 0}#side code{background:var(--bg);border:1px solid var(--line);border-radius:4px;padding:0 5px;font-size:12px}
+#side ul{padding-left:18px;margin:6px 0}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:2px 12px;font-size:13px;margin-top:8px}.kv span:nth-child(odd){color:var(--dim)}
+.bar{height:8px;background:var(--line);border-radius:4px;overflow:hidden}.bar i{display:block;height:100%;transition:width .3s}
+.bn{display:grid;gap:8px}
+.mod{border:1px solid var(--line);border-radius:8px;padding:8px}
+.mod h4{margin:0 0 6px;font-size:12px;color:var(--hi);display:flex;justify-content:space-between}
+.sig{display:inline-block;margin:2px 3px 2px 0;padding:1px 8px;border-radius:999px;font-size:11.5px;border:1px solid var(--line);cursor:pointer;color:var(--dim);user-select:none}
+.sig.High{background:#f851491f;border-color:var(--red);color:var(--red)}.sig.Low{border-color:var(--green);color:var(--green)}
+.badge{display:inline-block;border-radius:5px;padding:0 8px;font-size:12px;font-weight:700}
+.badge.Serve{background:#1a7f3733;color:var(--green)}.badge.Search{background:#9a670033;color:var(--amber)}.badge.Clarify{background:#0969da33;color:var(--blue)}
+#log{font:12px/1.5 ui-monospace,Menlo,Consolas,monospace;max-height:230px;overflow:auto;white-space:pre-wrap;color:var(--dim)}
+#log b{color:var(--text)}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.muted{color:var(--dim)}.note{font-size:12px;color:var(--dim)}
+.big{font-size:22px;color:var(--hi);font-variant-numeric:tabular-nums}
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px}.metrics div{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 10px}.metrics small{display:block;color:var(--dim);font-size:11px}
+</style>
+</head>
+<body>
+<header>
+  <h1>⚖️ <b>IPC</b> Assistant <span class="muted">· architecture</span></h1>
+  <div class="seg" role="tablist"><button id="mExplain" class="on">Explain</button><button id="mLive">Live</button></div>
+  <span id="conn" class="chip wait">connecting…</span>
+  <div class="sp"></div>
+  <a class="btn" href="/">◂ Back to the app</a>
+</header>
+
+<main>
+  <div>
+    <section class="card">
+      <h2 id="diagTitle">How a judgment flows through the system · click any block</h2>
+      <div class="scroll"><svg id="diag" viewBox="0 0 1000 560" role="img" aria-label="architecture diagram"></svg></div>
+      <p class="note" id="legend"><span style="color:var(--green)">GPU</span> blocks run on the RTX card · <span style="color:var(--violet)">CPU</span> blocks run on the processor (the Bayesian retriever never touches the GPU) · amber = external local service.</p>
+    </section>
+
+    <section class="card" id="livePanel" hidden>
+      <h2>Live run</h2>
+      <div class="row" style="margin-bottom:10px">
+        <input id="file" type="file" accept=".pdf,.txt" style="max-width:260px">
+        <button id="runDoc">Analyse this file</button>
+        <input id="q" type="text" placeholder="…or ask a question about the loaded judgment" style="flex:1;min-width:200px">
+        <button id="ask">Ask</button>
+      </div>
+      <p class="note">This page also shows runs started from the web app or from the terminal UI attached to this server.</p>
+      <div class="metrics">
+        <div><small>analysis time</small><span class="big" id="mTime">–</span></div>
+        <div><small>tokens read</small><span class="big" id="mTok">–</span></div>
+        <div><small>sentences</small><span class="big" id="mSent">–</span></div>
+        <div><small>answer speed</small><span class="big" id="mTps">–</span></div>
+        <div><small>router risk</small><span class="big" id="mRisk">–</span></div>
+      </div>
+      <h2 style="margin-top:14px">Event log</h2>
+      <div id="log"></div>
+    </section>
+  </div>
+
+  <aside>
+    <section class="card" id="side"></section>
+    <section class="card" id="bnCard">
+      <h2>Bayesian router playground · the real 20-node network</h2>
+      <p class="note" style="margin-top:0">Click a signal to flip it Low / High / unobserved. The server runs exact inference on the same network the chat uses.</p>
+      <div id="bn" class="bn"></div>
+      <div style="margin-top:10px"><div class="row"><span class="muted">P(wrong answer)</span><span class="big" id="pfail">–</span><span id="rbadge"></span></div>
+        <div class="bar" style="margin-top:4px"><i id="pbar" style="width:0;background:var(--amber)"></i></div>
+        <div id="dist" class="note" style="margin-top:6px"></div></div>
+    </section>
+  </aside>
+</main>
+
+<script>
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const NS='http://www.w3.org/2000/svg';
+
+// ───────── the architecture (nodes, edges, explanations) ─────────
+const N={ // id: [x,y,w,h,title,subtitle,device]
+ doc:[10,60,120,64,'Judgment','PDF or pasted text','io'],
+ read:[150,60,125,64,'Read & split','PyMuPDF · sentences','cpu'],
+ embed:[295,60,130,64,'InLegalBERT','one vector / sentence','gpu'],
+ hyena:[445,60,130,64,'Hyena encoder ×3','whole judgment','gpu'],
+ short:[595,60,120,64,'Shortlist','top 5–10 sections','gpu'],
+ verify:[735,60,130,64,'Llama verifier','4-bit + LoRA · yes/no','gpu'],
+ fuse:[885,60,105,64,'Fusion','α·enc+(1−α)·llm','gpu'],
+ out:[860,170,130,64,'Sections','+ evidence [S12]','io'],
+ prompt:[690,170,150,64,'Explanation prompt','opening · sections · [S] ids','cpu'],
+ q:[10,330,110,64,'Your question','chat','io'],
+ router:[150,310,170,104,'Bayesian router','14 signals → 20-node net','cpu'],
+ serve:[360,300,100,40,'Serve','P < 0.20','cpu'],
+ search:[360,350,100,40,'Search','0.20 – 0.60','cpu'],
+ clarify:[360,400,100,40,'Clarify','P > 0.60','cpu'],
+ retr:[505,335,150,64,'Retrieval','BM25 + InLegalBERT cosine','cpu'],
+ kb:[505,450,150,64,'legal_kb + procedural','100 statutes · 250 passages','io'],
+ llm:[690,330,150,74,'Chat model','Ollama · built-in · none','ext'],
+ ans:[870,340,120,64,'Answer','with [S] citations','io']
+};
+const E=[ // [from,to,class,label]
+ ['doc','read'],['read','embed'],['embed','hyena'],['hyena','short'],['short','verify'],['verify','fuse'],['fuse','out','', ''],
+ ['hyena','verify','dash','key passages'],['out','prompt'],['prompt','llm','dash','explain'],
+ ['q','router'],['router','serve'],['router','search'],['router','clarify'],['serve','retr'],['search','retr'],['clarify','q','dash','ask you'],
+ ['kb','retr','dash'],['embed','retr','dash','sentence vectors'],['retr','llm'],['llm','ans'],['out','llm','dash','']
+];
+const LANES=[[2,24,996,244,'Analysis pipeline · runs once per judgment'],[2,288,996,258,'Chat · routed before answering']];
+
+const DETAIL={
+ doc:{t:'Judgment',dev:'IO',body:'<p>A PDF or text of an Indian court judgment. Nothing leaves the machine: the whole system works offline once the models are downloaded.</p><p>Option <code>hide section numbers</code> masks section numbers already written in the text, so the model has to infer them from the facts.</p>',file:'ipc/engine.py · analyse()'},
+ read:{t:'Read & split',dev:'CPU',body:'<p>PyMuPDF extracts the text; a regex splits it into sentences (minimum 25 characters). Every sentence gets an index, which is where the <code>[S12]</code> citations come from.</p>',file:'ipc/pipeline.py · models/final/legal_hybrid.py'},
+ embed:{t:'InLegalBERT',dev:'GPU',body:'<p>A BERT pre-trained on Indian legal text reads the <b>whole</b> judgment in overlapping 510-token windows (nothing is truncated) and gives one 768-dimensional vector per sentence.</p><p>It now runs on the GPU in fp16: about 0.25 s for a 5,600-token judgment, against 18 s on the CPU fallback the first version used. Scores are unchanged (cosine 0.9999993).</p>',file:'ipc/pipeline.py · SentenceEmbedder'},
+ hyena:{t:'Hyena encoder (×3)',dev:'GPU',body:'<p>Three small Hyena networks (sub-quadratic long convolution computed with FFTs) read the sequence of sentence vectors, so cost grows almost linearly with judgment length. They output:</p><ul><li>a probability for each of 100 IPC sections</li><li>how important each sentence is</li><li>which sentences each section attended to (the evidence)</li></ul><p>Alone it scores micro-F1 0.563 on the project\'s test split.</p>',file:'models/final/legal_hybrid.py · LegalHyenaEncoder'},
+ short:{t:'Shortlist',dev:'GPU',body:'<p>Keeps the 5–10 most probable sections (dropping those under 5%). The verifier only has to judge these, which is why Llama reads about 2.6k tokens however long the judgment is, and GPU memory stays flat.</p>',file:'legal_hybrid.shortlist'},
+ verify:{t:'Llama verifier',dev:'GPU',body:'<p>Llama-3.2-3B in 4-bit with a trained LoRA reads the opening + key passages + each candidate\'s evidence and answers “Section 302: yes/no” for every candidate. It does this in two candidate orders and averages them, to cancel position bias.</p><p><b>Speed-up:</b> the two orders share about 1,640 of 2,620 prompt tokens. That prefix is read once and its KV cache is reused.</p><p>On the test split: encoder alone F1 0.563 → fused with the verifier 0.583. Selecting <i>Hyena only</i> skips this block.</p>',file:'ipc/pipeline.py · Analyzer.verify'},
+ fuse:{t:'Fusion',dev:'GPU',body:'<p><code>final = 0.6 · P<sub>encoder</sub> + 0.4 · P<sub>llama</sub></code> for shortlisted sections, compared with a single threshold (0.35). If nothing passes, the best section is kept.</p>',file:'legal_hybrid.fuse'},
+ out:{t:'Suggested sections',dev:'IO',body:'<p>The final list with confidence, the statute line, and the evidence sentences with their ids. This list is <b>final</b>: the explanation and chat are told to explain it, not change it.</p>',file:'ipc/engine.py · public()'},
+ prompt:{t:'Explanation prompt',dev:'CPU',body:'<p>Builds the lawyer\'s prompt: the system rules (use only the context, quote exactly, say “not stated in the judgment”), the opening of the judgment, the suggested sections with statute text and evidence, key passages and the end of the judgment, all with <code>[S..]</code> ids.</p><p>Answer format: case snapshot · proceedings · sections with evidence · outcome. If the model stops early, the engine asks it once to finish.</p>',file:'ipc/prompts.py'},
+ q:{t:'Your question',dev:'IO',body:'<p>A follow-up question about the loaded judgment, typed in the web app or in the terminal UI.</p>',file:'ipc/engine.py · chat()'},
+ router:{t:'Bayesian router',dev:'CPU',body:'<p>Before any answer is written, the retriever measures <b>14 signals</b> about the question: how short or vague it is, whether it has specific names, how close and relevant the best passages are, whether pronouns have no target, whether it is outside the library\'s domain, and so on.</p><p>A <b>20-node Bayesian network</b> (14 inputs → 4 bottlenecks → hallucination risk → route) turns them into P(wrong answer) with exact inference. It is pure Python and runs on the <b>CPU</b> only; the question is embedded by a small CPU copy of InLegalBERT in about 60 ms.</p><p>Try it in the playground on the right.</p>',file:'ipc/bayes.py · ipc/retriever.py'},
+ serve:{t:'Serve',dev:'CPU',body:'<p>Risk below 0.20. Answer from the judgment\'s own sentences.</p>',file:'ipc/retriever.py · ChatRouter'},
+ search:{t:'Search',dev:'CPU',body:'<p>Risk 0.20–0.60: the judgment alone is not enough (for example a question about what a section punishes). The search widens to the offline <code>legal_kb</code> statute cards, precedent passages and the CrPC/BNSS procedural cards. The original design searched Wikipedia here; this app stays offline.</p><p>Passages from <b>other</b> cases are dropped when the question is about <i>this</i> case, so they cannot be mistaken for its facts.</p>',file:'ipc/retriever.py · search_wide'},
+ clarify:{t:'Clarify',dev:'CPU',body:'<p>Risk above 0.60: the question is vague (“explain”) or has an unresolved pronoun (“what about it”). Instead of guessing, the system asks one targeted question, merges your reply into the query and routes again (at most two rounds).</p>',file:'ipc/retriever.py · make_clarifying_question'},
+ retr:{t:'Retrieval',dev:'CPU',body:'<p>Hybrid ranking: InLegalBERT cosine + BM25. The relevance score used by the router is half rescaled cosine, half IDF-weighted term coverage (it replaces the original cross-encoder reranker, which is not installed offline).</p>',file:'ipc/retriever.py · Corpus'},
+ kb:{t:'legal_kb + procedural KB',dev:'IO',body:'<p>350 passages embedded with the same InLegalBERT: 100 IPC statute cards and 250 chunks from 50 Supreme Court judgments, plus cards for 12 sections with cognizable / bailable / triable-by / bail guidance. Built by the Bayesian retriever project.</p>',file:'legal_kb/ · procedural_kb.py'},
+ llm:{t:'Chat model',dev:'LOCAL',body:'<p>Any model from <code>ollama list</code> (the web app\'s model menu or <code>/model</code> in the terminal UI), the built-in Llama-3.2-3B (with its verifier LoRA switched <b>off</b>), or no model at all (extractive answers).</p><p>On a 6 GB card the verifier and a large Ollama model do not fit together, so the engine unloads one before the other needs the card.</p>',file:'ipc/llm.py · ipc/engine.py'},
+ ans:{t:'Answer',dev:'IO',body:'<p>Streamed token by token. <code>[S12]</code> marks a sentence of the judgment (click it in the web app to read it); <code>[KB:…]</code> marks general library material. If nothing relevant exists, the answer is “not stated in the judgment”.</p>',file:'ipc/engine.py'}
+};
+const DEVCLS={GPU:'gpu',CPU:'cpu',IO:'io',LOCAL:'ext'};
+
+// ───────── build the SVG ─────────
+const svg=$('diag');
+function el(n,a,p){const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);(p||svg).appendChild(e);return e}
+svg.innerHTML='<defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="var(--dim)"/></marker></defs>';
+LANES.forEach(l=>{el('rect',{x:l[0],y:l[1],width:l[2],height:l[3],class:'lane'});const t=el('text',{x:l[0]+12,y:l[1]+16,class:'lane-t'});t.textContent=l[4]});
+const edgeEls={};
+function anchor(id,side){const [x,y,w,h]=N[id];return {l:[x,y+h/2],r:[x+w,y+h/2],t:[x+w/2,y],b:[x+w/2,y+h]}[side]}
+function route(a,b){
+  const A=N[a],B=N[b];let p,q,d;
+  const dx=(B[0]+B[2]/2)-(A[0]+A[2]/2),dy=(B[1]+B[3]/2)-(A[1]+A[3]/2);
+  if(Math.abs(dx)>=Math.abs(dy)){p=anchor(a,dx>0?'r':'l');q=anchor(b,dx>0?'l':'r');const m=(p[0]+q[0])/2;d=`M${p[0]} ${p[1]}C${m} ${p[1]},${m} ${q[1]===p[1]?q[1]:q[1]},${q[0]} ${q[1]}`}
+  else{p=anchor(a,dy>0?'b':'t');q=anchor(b,dy>0?'t':'b');const m=(p[1]+q[1])/2;d=`M${p[0]} ${p[1]}C${p[0]} ${m},${q[0]} ${m},${q[0]} ${q[1]}`}
+  return [d,p,q];
+}
+E.forEach(([a,b,cls,label])=>{
+  let [d,p,q]=route(a,b);
+  if(a==='hyena'&&b==='verify'){d=`M${N.hyena[0]+65} ${N.hyena[1]}C${N.hyena[0]+65} 30,${N.verify[0]+65} 30,${N.verify[0]+65} ${N.verify[1]}`;p=[N.hyena[0]+65,30];q=[N.verify[0]+65,30]}
+  if(a==='clarify'&&b==='q'){d=`M${N.clarify[0]} ${N.clarify[1]+20}C300 500,65 500,65 ${N.q[1]+N.q[3]}`;p=[200,500];q=[65,470]}
+  if(a==='out'&&b==='llm'){d=`M${N.out[0]+60} ${N.out[1]+N.out[3]}C${N.out[0]+60} 280,${N.llm[0]+120} 280,${N.llm[0]+120} ${N.llm[1]}`}
+  if(a==='embed'&&b==='retr'){d=`M${N.embed[0]+65} ${N.embed[1]+N.embed[3]}C${N.embed[0]+65} 250,${N.retr[0]+75} 250,${N.retr[0]+75} ${N.retr[1]}`;p=[430,258];q=[430,258]}
+  const path=el('path',{d,class:'edge '+(cls||''),'marker-end':'url(#ah)'});edgeEls[a+'>'+b]=path;
+  if(label){const t=el('text',{x:(p[0]+q[0])/2,y:(p[1]+q[1])/2-5,class:'elabel','text-anchor':'middle'});t.textContent=label}
+});
+const nodeEls={};
+Object.entries(N).forEach(([id,[x,y,w,h,t,s,dev]])=>{
+  const g=el('g',{class:'node'+(['serve','search','clarify'].includes(id)?' route':''),'data-id':id});
+  el('rect',{x,y,width:w,height:h},g);
+  const T=el('text',{x:x+10,y:y+(h>50?24:17),class:'t'},g);T.textContent=t;
+  const S=el('text',{x:x+10,y:y+(h>50?40:32),class:'s'},g);S.textContent=s;
+  const dv=DETAIL[id].dev;const D=el('text',{x:x+w-8,y:y+12,'text-anchor':'end',class:'dev '+DEVCLS[dv]},g);D.textContent=dv==='IO'?'':dv;
+  el('text',{x:x+10,y:y+h-8,class:'ms'},g);
+  g.addEventListener('click',()=>select(id));nodeEls[id]=g;
+});
+
+// ───────── side panel ─────────
+const timings={};
+function select(id){
+  document.querySelectorAll('.node').forEach(n=>n.classList.toggle('sel',n.dataset.id===id));
+  const d=DETAIL[id];const devc=DEVCLS[d.dev];
+  const tm=timings[id]?`<div class="kv"><span>last run</span><span>${timings[id]}</span></div>`:'';
+  $('side').innerHTML=`<h3>${d.t}</h3><div class="tags"><span class="chip">${d.dev==='IO'?'data':d.dev}</span></div>${d.body}<div class="kv"><span>code</span><span><code>${esc(d.file)}</code></span></div>${tm}`;
+}
+select('verify');
+
+// ───────── Bayesian playground ─────────
+let G=null;const state={}; // node -> 'Low'|'High'|undefined
+async function initBN(){
+  G=await (await fetch('/api/graph')).json();
+  const box=$('bn');box.innerHTML='';
+  Object.entries(G.modules).forEach(([b,inputs])=>{
+    const m=document.createElement('div');m.className='mod';
+    m.innerHTML=`<h4><span>${b}</span><span class="muted" id="bt-${b}"></span></h4><div class="bar"><i id="bb-${b}" style="width:0;background:var(--violet)"></i></div><div style="margin-top:6px">`+
+      Object.entries(inputs).map(([n,v])=>`<span class="sig" data-n="${n}" title="${esc(v.meaning)} (prior ${v.prior})">${n}</span>`).join('')+'</div>';
+    box.appendChild(m);
+  });
+  box.querySelectorAll('.sig').forEach(s=>s.onclick=()=>{const n=s.dataset.n;state[n]=state[n]===undefined?'High':state[n]==='High'?'Low':undefined;if(state[n]===undefined)delete state[n];paintSigs();runBN()});
+  runBN();
+}
+function paintSigs(){document.querySelectorAll('.sig').forEach(s=>{s.className='sig'+(state[s.dataset.n]?' '+state[s.dataset.n]:'')})}
+let bnT;function runBN(){clearTimeout(bnT);bnT=setTimeout(async()=>{
+  try{const r=await (await fetch('/api/bayes',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({evidence:state})})).json();showBN(r)}catch(e){}},80)}
+function showBN(r){
+  $('pfail').textContent=r.p_hallucination_high.toFixed(2);$('pbar').style.width=Math.round(r.p_hallucination_high*100)+'%';
+  $('pbar').style.background=r.p_hallucination_high<.2?'var(--green)':r.p_hallucination_high<=.6?'var(--amber)':'var(--blue)';
+  $('rbadge').innerHTML=`<span class="badge ${r.route}">${r.route}</span>`;
+  $('dist').textContent='Serve '+r.route_distribution.Serve.toFixed(2)+' · Search '+r.route_distribution.Search.toFixed(2)+' · Clarify '+r.route_distribution.Clarify.toFixed(2)+'   (if wrong, who is to blame: '+Object.entries(r.blame).map(([k,v])=>k.replace(/([A-Z])/g,' $1').trim()+' '+v.toFixed(2)).join(', ')+')';
+  Object.entries(r.bottlenecks).forEach(([b,v])=>{const i=$('bb-'+b);if(i)i.style.width=Math.round(v*100)+'%';const t=$('bt-'+b);if(t)t.textContent=v.toFixed(2)});
+}
+initBN();
+
+// ───────── mode switch ─────────
+let live=false;
+function setMode(l){live=l;$('mLive').classList.toggle('on',l);$('mExplain').classList.toggle('on',!l);$('livePanel').hidden=!l;
+  $('diagTitle').textContent=l?'Live view · blocks light up as the server works':'How a judgment flows through the system · click any block';if(l)connect()}
+$('mExplain').onclick=()=>setMode(false);$('mLive').onclick=()=>setMode(true);
+
+// ───────── live events ─────────
+const MAP={read:'read',hide:'read',split:'read',embed:'embed',hyena:'hyena',shortlist:'short',verify:'verify'};
+let es=null,tokCount=0,tokT0=0;
+function log(html){const l=$('log');l.insertAdjacentHTML('beforeend',html+'\n');l.scrollTop=l.scrollHeight}
+function clearRun(){Object.values(nodeEls).forEach(n=>n.classList.remove('run','done','cached','hit'));document.querySelectorAll('.node .ms').forEach(t=>t.textContent='');Object.values(edgeEls).forEach(e=>e.classList.remove('on'))}
+function nodeMs(id,txt){const t=nodeEls[id].querySelector('.ms');t.textContent=txt}
+function flow(a,b,on){const e=edgeEls[a+'>'+b];if(e)e.classList.toggle('on',on)}
+function connect(){
+  if(es)return;es=new EventSource('/api/events');
+  es.onopen=()=>{$('conn').className='chip ok';$('conn').textContent='live'};
+  es.onerror=()=>{$('conn').className='chip wait';$('conn').textContent='reconnecting…'};
+  es.onmessage=m=>{try{onEvent(JSON.parse(m.data))}catch(e){}};
+}
+function onEvent(e){
+  if(e.type==='request'){ if(e.kind==='analyse'){clearRun();flow('doc','read',true);log('<b>▶ analysing a judgment</b>')}
+    else if(e.kind==='chat'){['q','router','serve','search','clarify','retr','llm','ans'].forEach(i=>nodeEls[i].classList.remove('run','done','hit'));nodeMs('router','');nodeMs('llm','');flow('q','router',true);nodeEls.q.classList.add('done');log('<b>▶ chat question</b>')}
+    else if(e.kind==='explain'){nodeEls.prompt.classList.add('done');flow('prompt','llm',true);nodeEls.llm.classList.add('run');log('<b>▶ explanation</b>')} return}
+  if(e.type==='stage'){
+    if(e.name==='cache'){['read','embed','hyena','short','verify','fuse'].forEach(i=>nodeEls[i].classList.add('cached'));log('result cache hit: pipeline skipped');return}
+    if(e.name==='route'){const n=nodeEls.router;if(e.status==='start')n.classList.add('run');else{n.classList.remove('run');n.classList.add('done');nodeMs('router',e.ms+' ms')}return}
+    const id=MAP[e.name];if(!id)return;const n=nodeEls[id];
+    if(e.status==='start'){n.classList.add('run');n.classList.remove('done');flow(prev(id),id,true)}
+    else{n.classList.remove('run');n.classList.add('done');nodeMs(id,(e.ms||0)+' ms');timings[id]=(e.ms||0)+' ms'+(e.info&&e.info.device?' · '+e.info.device:'');flow(prev(id),id,false);
+      log(`✓ ${e.name} <b>${e.ms}ms</b>`+(e.info&&Object.keys(e.info).length?' '+esc(JSON.stringify(e.info).slice(0,150)):''));
+      if(e.name==='shortlist')nodeMs('short',(e.info.candidates||[]).length+' candidates');
+      if(e.name==='embed'&&e.info)nodeMs('embed',e.ms+' ms · '+e.info.device)}
+    return}
+  if(e.type==='result'){['fuse','out'].forEach(i=>nodeEls[i].classList.add('done'));flow('verify','fuse',false);log('<b>sections</b> '+e.result.sections.join(', ')+'  '+esc(JSON.stringify(e.result.scores)));return}
+  if(e.type==='route'){
+    ['serve','search','clarify'].forEach(r=>nodeEls[r].classList.toggle('hit',r===e.route.toLowerCase()));
+    nodeEls.router.classList.add('done');flow('q','router',false);flow('router',e.route.toLowerCase(),true);
+    if(e.route!=='Clarify'){nodeEls.retr.classList.add('done');flow(e.route.toLowerCase(),'retr',true)}
+    $('mRisk').textContent=e.p_fail.toFixed(2);
+    Object.keys(state).forEach(k=>delete state[k]);e.high_signals.forEach(s=>state[s]='High');paintSigs();runBN();
+    log(`<b>route ${e.route}</b> risk ${e.p_fail} · high: ${e.high_signals.join(', ')||'none'} · best passage relevance ${e.best_relevance}`);return}
+  if(e.type==='token'){ if(!tokCount){tokT0=performance.now();nodeEls.llm.classList.add('run');nodeEls.llm.classList.remove('done');flow('retr','llm',true)} tokCount++;
+    const s=(performance.now()-tokT0)/1000;if(s>0.5)$('mTps').textContent=(tokCount/s).toFixed(1)+'/s';return}
+  if(e.type==='done'){
+    if(e.kind==='analyse'&&e.stats){$('mTime').textContent=e.stats.seconds+'s';$('mTok').textContent=(e.stats.doc_tokens||0).toLocaleString();$('mSent').textContent=e.stats.sentences;Object.values(edgeEls).forEach(x=>x.classList.remove('on'))}
+    if(e.kind!=='analyse'){nodeEls.llm.classList.remove('run');nodeEls.llm.classList.add('done');nodeEls.ans.classList.add('done');flow('retr','llm',false);flow('prompt','llm',false);Object.values(edgeEls).forEach(x=>x.classList.remove('on'));
+      const s=e.stats||{};if(s.tokens_per_s)$('mTps').textContent=s.tokens_per_s+'/s';nodeMs('llm',(s.first_token_s!=null?'first '+s.first_token_s+'s':'')+(s.tokens_per_s?' · '+s.tokens_per_s+' tok/s':''));
+      timings.llm=(s.model||'')+(s.tokens_per_s?' · '+s.tokens_per_s+' tok/s':'')+(s.first_token_s!=null?' · first token '+s.first_token_s+'s':'');log('✓ answer '+esc(JSON.stringify(s)))}
+    tokCount=0;return}
+  if(e.type==='error'){log('<span style="color:var(--red)">error: '+esc(e.message)+'</span>')}
+  if(e.type==='info')log(esc(e.message));
+}
+function prev(id){return {read:'doc',embed:'read',hyena:'embed',short:'hyena',verify:'short'}[id]||'doc'}
+
+// start runs from this page
+$('runDoc').onclick=async()=>{const f=$('file').files[0];if(!f){alert('Choose a PDF or TXT file first.');return}
+  const r=await fetch('/api/analyse',{method:'POST',headers:{'X-Filename':f.name,'X-No-Cache':'1'},body:f});const rd=r.body.getReader();while(!(await rd.read()).done){}};
+$('ask').onclick=async()=>{const m=$('q').value.trim();if(!m)return;$('q').value='';const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:m})});const rd=r.body.getReader();while(!(await rd.read()).done){}};
+$('q').addEventListener('keydown',e=>{if(e.key==='Enter')$('ask').click()});
+fetch('/api/state').then(r=>r.json()).then(s=>{$('conn').className='chip '+(s.loaded?'ok':'wait');$('conn').textContent=s.loaded?'server ready · '+s.model:'server loading…'}).catch(()=>{$('conn').textContent='server unreachable'});
+if(location.hash==='#live')setMode(true);
+</script>
+</body>
+</html>

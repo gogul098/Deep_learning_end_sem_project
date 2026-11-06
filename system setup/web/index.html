@@ -1,0 +1,519 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>IPC Assistant</title>
+<style>
+:root{--bg:#0d1117;--panel:#161b22;--line:#30363d;--text:#c9d1d9;--dim:#8b949e;--hi:#f0f6fc;--blue:#38bdf8;--green:#3fb950;--amber:#d29922;--red:#f85149;--violet:#a78bfa;color-scheme:dark}
+@media (prefers-color-scheme:light){:root.auto{--bg:#f6f8fa;--panel:#fff;--line:#d0d7de;--text:#1f2328;--dim:#59636e;--hi:#000;--blue:#0969da;--green:#1a7f37;--amber:#9a6700;--red:#cf222e;--violet:#6639ba;color-scheme:light}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:14px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif}
+header{position:sticky;top:0;z-index:5;background:var(--panel);border-bottom:1px solid var(--line);padding:10px 16px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+header h1{font-size:15px;margin:0;color:var(--hi);letter-spacing:.2px}
+header h1 b{color:var(--blue)}
+.sp{flex:1}
+select,button,input[type=text],textarea{font:inherit;color:var(--text);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:6px 10px}
+button{cursor:pointer}button:hover:not(:disabled){border-color:var(--blue)}button:disabled{opacity:.5;cursor:default}
+button.primary{background:var(--blue);color:#04121c;border-color:var(--blue);font-weight:600}
+a.btn{color:var(--text);text-decoration:none;border:1px solid var(--line);border-radius:6px;padding:6px 10px}a.btn:hover{border-color:var(--blue)}
+.chip{border:1px solid var(--line);border-radius:999px;padding:2px 10px;font-size:12px;color:var(--dim);white-space:nowrap}
+.chip.ok{color:var(--green);border-color:var(--green)}.chip.bad{color:var(--red);border-color:var(--red)}.chip.wait{color:var(--amber);border-color:var(--amber)}
+main{margin:0 auto;padding:16px;display:grid;grid-template-columns:minmax(0,290px) minmax(0,1fr) minmax(0,430px);gap:16px;align-items:start}
+.side{position:sticky;top:72px;max-height:calc(100vh - 88px);overflow-y:auto;scrollbar-width:thin}
+.side .card:last-child{margin-bottom:0}
+#chatCard{display:flex;flex-direction:column;height:calc(100vh - 88px);min-height:420px;margin:0}
+#chatCard .chatbox{flex:1;display:flex;flex-direction:column;min-height:0}
+#secsEmpty{color:var(--dim);font-size:13px}
+#resultCard:not([hidden]) ~ #secsEmpty{display:none}
+#resultCard td,#resultCard th{padding:6px 5px}
+@media(max-width:1500px){main{grid-template-columns:minmax(0,250px) minmax(0,1fr) minmax(0,370px)}}
+@media(max-width:1100px){main{grid-template-columns:minmax(0,250px) minmax(0,1fr)}#right{grid-column:1/-1;position:static;max-height:none}}
+@media(max-width:860px){main{grid-template-columns:minmax(0,1fr)}.side{position:static;max-height:none}#chatCard{height:75vh}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:16px}
+.card h2{font-size:12px;text-transform:uppercase;letter-spacing:.8px;color:var(--dim);margin:0 0 10px;font-weight:600}
+#drop{border:1.5px dashed var(--line);border-radius:10px;padding:22px 10px;text-align:center;color:var(--dim);cursor:pointer}
+#drop.over{border-color:var(--blue);color:var(--blue)}
+textarea{width:100%;min-height:110px;resize:vertical;margin-top:8px}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px}
+label.chk{display:flex;gap:6px;align-items:center;color:var(--dim);font-size:13px}
+#stages{list-style:none;margin:0;padding:0}
+#stages li{display:flex;gap:8px;padding:3px 0;color:var(--dim);font-size:13px}
+#stages li .ic{width:16px;text-align:center}
+#stages li.run{color:var(--blue)}#stages li.done{color:var(--text)}#stages li .ms{margin-left:auto;font-variant-numeric:tabular-nums;color:var(--dim)}
+@keyframes spin{to{transform:rotate(360deg)}}.spin{display:inline-block;animation:spin 1s linear infinite}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--dim);font-weight:600;font-size:12px}
+.bar{height:6px;background:var(--line);border-radius:3px;min-width:70px;overflow:hidden}.bar i{display:block;height:100%;background:var(--blue)}
+.tbl{overflow-x:auto}
+.quote{border-left:3px solid var(--violet);padding:2px 10px;margin:4px 0;color:var(--text);font-size:13px}
+.sid{color:var(--violet);cursor:pointer;font-weight:600}.sid:hover{text-decoration:underline}
+#explain,.msg .t{white-space:pre-wrap;word-wrap:break-word}
+#explain{min-height:40px}
+.msg{padding:10px 12px;border-radius:8px;margin:8px 0;border-left:3px solid var(--line);background:var(--bg)}
+.msg.u{border-left-color:var(--blue)}.msg.a{border-left-color:var(--violet)}
+.badge{display:inline-block;border-radius:5px;padding:0 7px;font-size:12px;font-weight:700;margin-right:6px}
+.badge.Serve{background:#1a7f3733;color:var(--green)}.badge.Search{background:#9a670033;color:var(--amber)}.badge.Clarify{background:#0969da33;color:var(--blue)}
+details{margin-top:6px;color:var(--dim);font-size:12px}details summary{cursor:pointer}
+.pass{margin:3px 0;padding-left:8px;border-left:2px solid var(--line)}
+.chatbox{border:1px solid var(--line);border-radius:10px;background:var(--bg);overflow:hidden}
+.chatbox:focus-within{border-color:var(--blue)}
+#chat{flex:1;min-height:0;overflow-y:auto;padding:4px 12px}
+#chat .msg{background:transparent;border-left-width:2px;margin:10px 0;padding:2px 10px}
+#sugs{display:flex;gap:6px;flex-wrap:wrap;padding:8px 12px 0;border-top:1px solid var(--line)}
+#sugs:empty{display:none}
+#chat:empty{display:none}
+#chat:empty + #sugs{border-top:0}
+header select{max-width:230px}
+.sug{font-size:12px;border:1px solid var(--line);border-radius:999px;padding:2px 10px;color:var(--dim);background:transparent;cursor:pointer}
+.sug:hover{color:var(--text);border-color:var(--blue)}
+.composer{display:flex;gap:8px;align-items:center;padding:8px 12px}
+.composer b{color:var(--blue)}
+.composer input{flex:1;min-width:0;border:0;background:transparent;padding:6px 0;outline:none}
+.pop{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);max-width:min(760px,92vw);background:var(--panel);border:1px solid var(--violet);border-radius:8px;padding:10px 14px;z-index:9;box-shadow:0 8px 30px #0008}
+.muted{color:var(--dim)}.err{color:var(--red)}
+.newchat{width:100%;display:flex;align-items:center;gap:8px;justify-content:center;padding:9px 12px;margin-bottom:16px;border-radius:10px;font-weight:600;background:var(--panel);border:1px solid var(--line)}
+.newchat:hover:not(:disabled){border-color:var(--blue);color:var(--hi)}
+#histSearch{width:100%;margin-bottom:8px;font-size:13px}
+#hist{display:flex;flex-direction:column;gap:2px;max-height:46vh;overflow-y:auto;margin:0 -6px;padding:0 6px}
+.hgrp{font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:.6px;margin:10px 4px 4px}.hgrp:first-child{margin-top:0}
+.hi{display:flex;align-items:center;gap:4px;padding:6px 8px;border-radius:7px;cursor:pointer;border:1px solid transparent}
+.hi:hover{background:var(--bg)}.hi.cur{background:rgba(56,189,248,0.10);border-color:rgba(56,189,248,0.35)}
+.hi .tx{flex:1;min-width:0}
+.hi .tt{font-size:13px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hi .jd{font-size:11px;color:var(--dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hi .act{display:none;border:0;background:transparent;color:var(--dim);padding:0 3px;font-size:13px}
+.hi:hover .act,.hi.cur .act{display:inline-block}.hi .act:hover{color:var(--hi)}.hi .act.del:hover{color:var(--red)}
+.hi input{width:100%;font-size:13px;padding:2px 6px}
+.msg.sep{border-left:0}
+.note{font-size:12px;color:var(--dim);margin-top:8px}
+.role-btn{text-align:left;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--bg);cursor:pointer;transition:all .15s;color:var(--text)}
+.role-btn:hover{border-color:var(--blue)}
+.role-btn.active{border-color:var(--blue);background:rgba(56,189,248,0.12);box-shadow:0 0 0 1px var(--blue)}
+.role-btn .r-title{font-weight:600;font-size:13px;display:flex;align-items:center;gap:6px}
+.role-btn .r-desc{font-size:11px;color:var(--dim);margin-top:4px;line-height:1.4}
+.role-badge{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:600}
+.role-badge.accused{background:rgba(56,189,248,0.15);color:var(--blue);border:1px solid var(--blue)}
+.role-badge.complainant{background:rgba(210,153,34,0.15);color:var(--amber);border:1px solid var(--amber)}
+.role-badge.neutral{background:rgba(139,148,158,0.15);color:var(--dim);border:1px solid var(--line)}
+</style>
+</head>
+<body>
+<header>
+  <h1>⚖️ <b>IPC</b> Assistant <span class="muted">· offline</span></h1>
+  <span id="status" class="chip wait">connecting…</span>
+  <span id="gpu" class="chip">GPU</span>
+  <div class="sp"></div>
+  <label class="muted" for="roleSel">Perspective</label>
+  <select id="roleSel" title="Select advocate party perspective: Accused (Defence) or Complainant (Prosecution)">
+    <option value="accused">🛡️ Accused / Defence</option>
+    <option value="complainant">⚖️ Complainant / Prosecution</option>
+    <option value="neutral">📜 Neutral Overview</option>
+  </select>
+  <label class="muted" for="model">Chat model</label>
+  <select id="model" title="Any model from `ollama list`, the built-in Llama, or none"></select>
+  <label class="muted" for="verifier">Verifier</label>
+  <select id="verifier" title="Llama checks each shortlisted section; 'none' uses the Hyena encoder alone (about 2 F1 points lower, no Llama in memory)">
+    <option value="llama">Llama + Hyena</option><option value="none">Hyena only</option></select>
+  <a class="btn" href="/architecture">Architecture ▸</a>
+</header>
+
+<div id="loadErr" hidden style="margin:16px auto 0;padding:0 16px"><div class="card" style="border-color:var(--red);margin:0">
+  <h2 style="color:var(--red)">The models could not be loaded</h2><div id="loadErrMsg"></div>
+  <div class="row"><button class="primary" onclick="retryLoad()">Retry</button></div></div></div>
+<main>
+  <aside class="side" id="left">
+    <button id="newChat" class="newchat" title="Start a new conversation on the open judgment">＋ New chat</button>
+    <section class="card">
+      <h2>Judgment</h2>
+      <div id="drop">Drop a judgment (PDF / TXT) here, or click to choose<input id="file" type="file" accept=".pdf,.txt" hidden></div>
+      <textarea id="paste" placeholder="…or paste the judgment text"></textarea>
+      <div class="row">
+        <button id="go" class="primary" disabled>Analyse</button>
+        <label class="chk"><input id="hide" type="checkbox" checked> hide section numbers already in the text</label>
+      </div>
+      <div class="note" id="docname"></div>
+    </section>
+    <section class="card" id="histCard">
+      <h2>Chat history</h2>
+      <input id="histSearch" type="text" placeholder="Search chats…">
+      <div id="hist"><div class="muted" style="font-size:13px">No chats yet. Analyse a judgment and ask a question; every conversation is kept here.</div></div>
+    </section>
+    <section class="card">
+      <h2>Progress</h2>
+      <ul id="stages"><li class="muted">Nothing running.</li></ul>
+      <div class="note" id="stats"></div>
+    </section>
+  </aside>
+
+  <div id="center">
+    <section class="card" id="chatCard">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <h2 style="margin:0">Chat with the judgment</h2>
+          <span id="chatRoleBadge" class="role-badge accused">🛡️ Defence Co-Counsel</span>
+        </div>
+        <button class="sug" id="clearChatBtn" title="Clear conversation history">Clear</button>
+      </div>
+      <div class="chatbox">
+        <div id="chat"><div class="muted" style="padding:8px 0">Ask tactical questions about the judgment. The assistant will evaluate facts, evidence, and proceedings from your client's perspective.</div></div>
+        <div id="sugs"></div>
+        <div class="composer"><b id="composerPrefix">🛡️</b><input id="q" type="text" placeholder="Ask about the judgment…" disabled><button id="send" disabled>Send</button></div>
+      </div>
+    </section>
+  </div>
+
+  <aside class="side" id="right">
+    <section class="card" id="resultCard" hidden>
+      <h2>Suggested IPC sections</h2>
+      <div class="tbl"><table><thead><tr><th>Section</th><th>Confidence</th><th>What it covers · evidence</th></tr></thead><tbody id="secs"></tbody></table></div>
+      <details><summary>All candidates the verifier checked</summary>
+        <div class="tbl"><table><thead><tr><th>Section</th><th>Encoder</th><th>Llama</th><th>Final</th></tr></thead><tbody id="cands"></tbody></table></div></details>
+      <p class="note">Decision support only: a qualified lawyer must verify every section.</p>
+    </section>
+    <section class="card" id="secsEmpty"><h2>Suggested IPC sections</h2>Analyse a judgment to see the suggested sections and the evidence for each.</section>
+    <section class="card" id="expCard" hidden>
+      <h2 id="expTitle">🛡️ Strategic Defence Briefing & Roadmap</h2>
+      <div class="row" style="margin:0 0 8px">
+        <button id="explainBtn" class="primary">🛡️ Generate Defence Strategy & Roadmap</button>
+        <span id="expStat" class="muted"></span>
+      </div>
+      <div id="explain" class="muted">Press the button to generate missing ingredients analysis, bail viability, prosecution flaws, and cross-examination directions.</div>
+    </section>
+  </aside>
+</main>
+<div id="pop" class="pop" hidden></div>
+
+<script>
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let ready=false,busy=false,hasDoc=false,file=null;
+let currentRole='accused';
+let currentResult=null;
+
+const ROLE_CONFIG = {
+  accused: {
+    name: 'accused',
+    badge: '🛡️ Defence Mode Active',
+    chatBadge: '🛡️ Defence Co-Counsel',
+    prefix: '🛡️',
+    title: '🛡️ Strategic Defence Briefing & Roadmap',
+    btnText: '🛡️ Generate Defence Strategy & Roadmap',
+    expPlaceholder: 'Press the button to generate missing ingredients analysis, bail viability, prosecution flaws, and cross-examination directions.',
+    inputPlaceholder: 'Ask as Defence Counsel (e.g. bail viability, missing ingredients, cross-exam points)…'
+  },
+  complainant: {
+    name: 'complainant',
+    badge: '⚖️ Prosecution Mode Active',
+    chatBadge: '⚖️ Prosecution Co-Counsel',
+    prefix: '⚖️',
+    title: '⚖️ Strategic Prosecution Briefing & Roadmap',
+    btnText: '⚖️ Generate Prosecution Strategy & Roadmap',
+    expPlaceholder: 'Press the button to substantiate charges, safeguard evidence, oppose bail, and outline next procedural steps.',
+    inputPlaceholder: 'Ask as Prosecution Counsel (e.g. proof of ingredients, opposing bail, witness recall)…'
+  },
+  neutral: {
+    name: 'neutral',
+    badge: '📜 Neutral Mode Active',
+    chatBadge: '📜 Judicial Legal Assistant',
+    prefix: '📜',
+    title: '📜 Case Explanation & Analysis',
+    btnText: '📜 Explain this judgment',
+    expPlaceholder: 'Press the button to have the chat model explain the judgment and the suggested sections.',
+    inputPlaceholder: 'Ask about the loaded judgment…'
+  }
+};
+
+function updateRoleUI(role) {
+  const cfg = ROLE_CONFIG[role] || ROLE_CONFIG.accused;
+  currentRole = cfg.name;
+  if ($('roleSel')) $('roleSel').value = cfg.name;
+
+  ['accused', 'complainant', 'neutral'].forEach(r => {
+    const btn = $('btnRole' + r.charAt(0).toUpperCase() + r.slice(1));
+    if (btn) {
+      if (r === cfg.name) btn.classList.add('active');
+      else btn.classList.remove('active');
+    }
+  });
+
+  const ab = $('activeRoleBadge');
+  if (ab) {
+    ab.className = 'role-badge ' + cfg.name;
+    ab.textContent = cfg.badge;
+  }
+  const cb = $('chatRoleBadge');
+  if (cb) {
+    cb.className = 'role-badge ' + cfg.name;
+    cb.textContent = cfg.chatBadge;
+  }
+
+  if ($('composerPrefix')) $('composerPrefix').textContent = cfg.prefix;
+  if ($('q')) $('q').placeholder = cfg.inputPlaceholder;
+  if ($('expTitle')) $('expTitle').textContent = cfg.title;
+  if ($('explainBtn')) $('explainBtn').textContent = cfg.btnText;
+  if ($('explain') && $('explain').classList.contains('muted')) {
+    $('explain').textContent = cfg.expPlaceholder;
+  }
+
+  if (currentResult) {
+    setSuggestions(currentResult);
+  }
+}
+
+async function setRole(role, notify=true) {
+  updateRoleUI(role);
+  if (currentResult) showSavedBriefing();
+  if (notify) {
+    try {
+      await api('/api/role', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({role})});
+    } catch (e) {
+      console.warn('Failed to save role on server:', e);
+    }
+  }
+}
+
+async function api(path,opt){const r=await fetch(path,opt);if(!r.ok)throw new Error((await r.text())||r.status);return r.json()}
+
+// Server-sent events over fetch (POST bodies are needed)
+async function stream(path,opt,onEv){
+  const r=await fetch(path,{method:'POST',...opt});
+  if(!r.ok)throw new Error(await r.text());
+  const rd=r.body.getReader(),dec=new TextDecoder();let buf='';
+  for(;;){const {value,done}=await rd.read();if(done)break;buf+=dec.decode(value,{stream:true});
+    let i;while((i=buf.indexOf('\n\n'))>=0){const chunk=buf.slice(0,i);buf=buf.slice(i+2);
+      if(chunk.startsWith('data: ')){try{onEv(JSON.parse(chunk.slice(6)))}catch(e){}}}}
+}
+
+function cite(text){return esc(text).replace(/\[S(\d+)\]/g,'<span class="sid" data-s="$1">[S$1]</span>')}
+document.addEventListener('click',async e=>{
+  const s=e.target.closest('.sid');if(!s){if(!e.target.closest('#pop'))$('pop').hidden=true;return}
+  try{const j=await api('/api/sentence/'+s.dataset.s);$('pop').innerHTML='<b class="sid">['+j.id+']</b> '+esc(j.text)+' <span class="muted" style="cursor:pointer" onclick="pop.hidden=true"> ✕</span>';$('pop').hidden=false}catch(_){}
+});
+
+// ───── status / models ─────
+async function refresh(){
+  try{
+    const s=await api('/api/state');
+    ready=!!s.loaded;
+    const st=$('status');
+    if(s.load_state==='error'){st.className='chip bad';st.textContent='models not loaded';showLoadError(s.error)}
+    else if(!ready){st.className='chip wait';st.textContent='loading models… '+(s.elapsed||0)+'s'}
+    else{st.className='chip ok';st.textContent='ready · '+s.device;$('loadErr').hidden=true}
+    if(s.gpu&&s.gpu.ok)$('gpu').textContent=`${s.gpu.name.replace('NVIDIA GeForce ','')} · ${s.gpu.used_gb}/${s.gpu.total_gb} GB · ${s.gpu.temp}°C`;else $('gpu').textContent='CPU';
+    if(ready){$('verifier').value=s.verifier;if(!$('model').dataset.loaded)await loadModels()}
+    if(s.role && s.role !== currentRole) updateRoleUI(s.role);
+    $('go').disabled=!ready||busy;$('q').disabled=!ready;$('send').disabled=!ready||busy;
+  }catch(e){$('status').className='chip bad';$('status').textContent='server unreachable'}
+}
+function showLoadError(msg){const b=$('loadErr');b.hidden=false;$('loadErrMsg').textContent=msg}
+async function retryLoad(){$('loadErr').hidden=true;await fetch('/api/reload',{method:'POST'});refresh()}
+async function loadModels(){
+  const ms=await api('/api/models');const sel=$('model');sel.innerHTML='';
+  ms.forEach(m=>{const o=document.createElement('option');o.value=m.name;o.textContent=m.label+(m.size_gb&&m.kind==='ollama'?` · ${m.size_gb} GB`:'');if(m.active)o.selected=true;sel.appendChild(o)});
+  sel.dataset.loaded='1';
+}
+$('model').onfocus=async()=>{const cur=$('model').value;await loadModels();$('model').value=cur};
+$('model').onchange=async e=>{try{await api('/api/model',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:e.target.value})})}catch(x){alert(x.message)}};
+$('verifier').onchange=async e=>{try{await api('/api/verifier',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mode:e.target.value})})}catch(x){alert(x.message)}};
+$('roleSel').onchange=async e=>{await setRole(e.target.value)};
+let shownDoc=null;
+async function restore(){   // a judgment opened elsewhere (terminal UI, another tab) shows up here too
+  if(!ready||busy)return;
+  try{const st=await api('/api/state');const name=st.document&&st.document.name;
+    if(name&&name!==shownDoc){const r=await api('/api/result');shownDoc=name;showResult(r)}}catch(_){}
+}
+setInterval(async()=>{await refresh();restore()},3000);refresh().then(restore).then(loadChats);
+
+// ───── document input ─────
+const drop=$('drop'),fin=$('file');
+drop.onclick=()=>fin.click();
+['dragenter','dragover'].forEach(t=>drop.addEventListener(t,e=>{e.preventDefault();drop.classList.add('over')}));
+['dragleave','drop'].forEach(t=>drop.addEventListener(t,e=>{e.preventDefault();drop.classList.remove('over')}));
+drop.addEventListener('drop',e=>{if(e.dataTransfer.files[0])pick(e.dataTransfer.files[0])});
+fin.onchange=()=>{if(fin.files[0])pick(fin.files[0])};
+function pick(f){file=f;$('docname').textContent='Selected: '+f.name+' ('+(f.size/1024).toFixed(0)+' KB)';$('paste').value=''}
+
+// ───── analysis ─────
+const STAGE_LABEL={read:'Read document',cache:'Result cache',hide:'Hide cited sections',split:'Split into sentences',embed:'InLegalBERT sentence vectors',hyena:'Hyena encoder (whole judgment)',shortlist:'Shortlist candidate sections',verify:'Llama verifier',route:'Bayesian router'};
+function setStage(ev){
+  const ul=$('stages');if(ul.firstChild&&ul.firstChild.classList.contains('muted'))ul.innerHTML='';
+  let li=$('st-'+ev.name);
+  if(!li){li=document.createElement('li');li.id='st-'+ev.name;ul.appendChild(li)}
+  const label=STAGE_LABEL[ev.name]||ev.name;
+  if(ev.status==='start'){li.className='run';li.innerHTML=`<span class="ic spin">◜</span><span>${label}</span><span class="ms"></span>`}
+  else{li.className='done';let extra='';const i=ev.info||{};
+    if(ev.name==='embed')extra=` <span class="muted">(${i.device})</span>`;
+    if(ev.name==='verify'&&i.shared_prefix_tokens)extra=` <span class="muted">(${i.shared_prefix_tokens} prefix tokens read once)</span>`;
+    li.innerHTML=`<span class="ic" style="color:var(--green)">✓</span><span>${label}${extra}</span><span class="ms">${ev.ms}ms</span>`}
+}
+$('go').onclick=async()=>{
+  if(busy)return;const text=$('paste').value.trim();
+  if(!file&&!text){alert('Choose a file or paste text first.');return}
+  const hide=$('hide').checked;
+  const opt=file?{headers:{'X-Filename':file.name,'X-Hide-Cited':hide?'1':'0'},body:file}
+             :{headers:{'Content-Type':'application/json'},body:JSON.stringify({text,hide_cited:hide,name:'pasted text'})};
+  await runAnalysis('/api/analyse',opt);
+};
+async function runAnalysis(path,opt){
+  busy=true;$('go').disabled=true;$('stages').innerHTML='';$('stats').textContent='';$('resultCard').hidden=true;
+  try{
+    await stream(path,opt,ev=>{
+      if(ev.type==='stage')setStage(ev);
+      else if(ev.type==='result')showResult(ev.result);
+      else if(ev.type==='error')$('stats').innerHTML='<span class="err">'+esc(ev.message)+'</span>';
+      else if(ev.type==='done'){const s=ev.stats;$('stats').textContent=`${(s.doc_tokens||0).toLocaleString()} tokens · ${s.sentences} sentences · ${s.seconds}s`+(s.peak_vram_gb?` · peak VRAM ${s.peak_vram_gb} GB`:'')+(s.cached?' · from cache':'')}
+    });
+  }catch(e){$('stats').innerHTML='<span class="err">'+esc(e.message)+'</span>'}
+  busy=false;refresh();loadChats();
+}
+function showResult(r){
+  hasDoc=true;shownDoc=r.document;currentResult=r;setSuggestions(r);$('resultCard').hidden=false;$('expCard').hidden=false;$('chat').innerHTML='';
+  const cfg=ROLE_CONFIG[currentRole]||ROLE_CONFIG.accused;
+  $('explain').className='muted';$('explain').textContent=cfg.expPlaceholder;
+  const dn=r.document||'';$('docname').textContent=(dn.length>44?dn.slice(0,20)+'…'+dn.slice(-18):dn)+(r.cached?' (cached)':'');$('docname').title=dn;
+  $('secs').innerHTML=(r.weak_prediction?`<tr><td colspan=3 class="muted"><b>Low confidence, likely not applicable.</b> ${esc(r.weak_reason||'')}</td></tr>`:'')+r.sections.map(s=>{const sc=r.scores[s];
+    const ev=(r.evidence[s]||[]).map(e=>`<div class="quote"><span class="sid" data-s="${e.id.slice(1)}">[${e.id}]</span> ${esc(e.text.length>260?e.text.slice(0,260)+'…':e.text)}</div>`).join('');
+    return `<tr><td><b>${esc(s)}</b></td><td><div>${sc.toFixed(2)}</div><div class="bar"><i style="width:${Math.round(sc*100)}%"></i></div></td><td>${esc(r.statutes[s]||'')}${ev}</td></tr>`}).join('')||'<tr><td colspan=3 class="muted">No section reached the threshold.</td></tr>';
+  showConv(r.conv);showSavedBriefing();
+  $('cands').innerHTML=Object.entries(r.candidates).map(([c,v])=>`<tr><td>${esc(c)}${r.sections.includes(c)?' ✓':''}</td><td>${v.encoder.toFixed(2)}</td><td>${v.llm==null?'–':v.llm.toFixed(2)}</td><td>${v.final.toFixed(2)}</td></tr>`).join('');
+}
+
+function setSuggestions(r){
+  currentResult=r;
+  const secs = r.sections || [];
+  let qs = [];
+  if (currentRole === 'accused') {
+    qs = [
+      'What are the strongest grounds for regular or anticipatory bail?',
+      'Which statutory ingredients are missing in the prosecution case?',
+      'What are the key flaws, omissions, or delays in the FIR?',
+      'What specific cross-examination questions should I ask PW1?',
+      'What crucial documents should we summon under Section 91 CrPC?'
+    ];
+    if (secs.length > 0) qs.splice(2, 0, `How to defend against ${secs[0]}?`);
+  } else if (currentRole === 'complainant') {
+    qs = [
+      'What are the strongest incriminating evidence sentences for our case?',
+      'How do we prove all statutory ingredients of the charges beyond doubt?',
+      'What grounds should we argue to oppose or cancel bail?',
+      'What additional witnesses or charges should be pressed u/s 311/216 CrPC?',
+      'How to preempt defence arguments regarding delay or minor discrepancies?'
+    ];
+    if (secs.length > 0) qs.splice(2, 0, `What evidence strictly proves ${secs[0]}?`);
+  } else {
+    qs = [
+      'What did the court decide?',
+      'Summarise the facts in three lines'
+    ];
+    secs.slice(0, 2).forEach(x => {
+      qs.push('What evidence points to ' + x + '?');
+      qs.push('What does ' + x + ' cover?');
+    });
+  }
+  $('sugs').innerHTML = qs.map(q => `<button class="sug">${esc(q)}</button>`).join('');
+}
+$('sugs').addEventListener('click',e=>{const b=e.target.closest('.sug');if(b&&!busy){$('q').value=b.textContent;send()}});
+
+// ───── chat history (like any LLM app) ─────
+function ago(t){if(!t)return'';const d=(Date.now()/1000-t);if(d<90)return'just now';if(d<3600)return Math.round(d/60)+' min ago';if(d<86400)return Math.round(d/3600)+' h ago';
+  return new Date(t*1000).toLocaleDateString(undefined,{day:'numeric',month:'short'})}
+let chats=[];
+function grp(t){const d=new Date(t*1000),n=new Date();const day=x=>new Date(x.getFullYear(),x.getMonth(),x.getDate()).getTime();
+  const diff=(day(n)-day(d))/864e5;return diff<1?'Today':diff<2?'Yesterday':diff<8?'Previous 7 days':diff<31?'Previous 30 days':'Older'}
+const RESTART_HINT='The app was updated but is still running the old version. Close the black IPC Assistant window and open the app again.';
+async function loadChats(){try{chats=await api('/api/chats')}catch(e){if(/not found/i.test(e.message))$('hist').innerHTML='<div class="err" style="font-size:13px">'+RESTART_HINT+'</div>';return}renderChats()}
+function renderChats(){
+  const q=$('histSearch').value.trim().toLowerCase();
+  const list=chats.filter(c=>!q||c.title.toLowerCase().includes(q)||c.judgment.toLowerCase().includes(q));
+  if(!list.length){$('hist').innerHTML='<div class="muted" style="font-size:13px">'+(q?'No chat matches.':'No chats yet. Analyse a judgment and ask a question; every conversation is kept here.')+'</div>';return}
+  let last='',h='';
+  for(const c of list){const g=grp(c.updated||Date.now()/1000);if(g!==last){h+=`<div class="hgrp">${g}</div>`;last=g}
+    h+=`<div class="hi${c.current?' cur':''}" data-id="${c.id}" title="${esc(c.title)}\n${esc(c.judgment)}${c.messages?' · '+c.messages+' question'+(c.messages===1?'':'s'):''}">
+      <div class="tx"><div class="tt">${esc(c.title)}</div><div class="jd">${esc(c.judgment)}</div></div>
+      ${c.messages?'<button class="act ren" title="Rename">✎</button>':''}<button class="act del" title="Delete chat">✕</button></div>`}
+  $('hist').innerHTML=h;
+}
+$('histSearch').addEventListener('input',renderChats);
+$('hist').addEventListener('click',async e=>{
+  const row=e.target.closest('.hi');if(!row||busy||!ready)return;const id=row.dataset.id;
+  if(e.target.closest('.del')){if(!confirm('Delete this chat?'))return;
+    try{const r=await api('/api/chats/'+id,{method:'DELETE'});if(r.switched&&currentResult){currentResult.conv=r.conv;showConv(r.conv)}}catch(_){}
+    loadChats();return}
+  if(e.target.closest('.ren')){const tt=row.querySelector('.tt');const inp=document.createElement('input');inp.value=tt.textContent;tt.replaceWith(inp);inp.focus();inp.select();
+    const done=async ok=>{if(inp.dataset.d)return;inp.dataset.d=1;if(ok&&inp.value.trim()){try{await api('/api/chats/'+id,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({title:inp.value})})}catch(_){}}loadChats()};
+    inp.onkeydown=ev=>{if(ev.key==='Enter')done(true);if(ev.key==='Escape')done(false)};inp.onblur=()=>done(true);inp.onclick=ev=>ev.stopPropagation();return}
+  if(row.classList.contains('cur'))return;
+  file=null;$('paste').value='';
+  await runAnalysis('/api/chats/'+id+'/open',{});
+});
+$('newChat').onclick=async()=>{
+  if(busy)return;
+  if(!hasDoc){$('drop').click();return}
+  try{const r=await api('/api/chats/new',{method:'POST'});currentResult.conv=r.conv;showConv(r.conv)}catch(e){alert(/not found/i.test(e.message)?RESTART_HINT:e.message)}
+  loadChats();$('q').focus();
+};
+function answerHtml(c){
+  const rCfg=ROLE_CONFIG[c.role]||ROLE_CONFIG.accused;
+  const head=c.route?`<span class="badge ${c.route}">${c.route}</span><span class="role-badge ${rCfg.name}" style="margin-right:6px">${rCfg.chatBadge}</span>`+(c.p_fail!=null?`<span class="muted">risk of a wrong answer ${(+c.p_fail).toFixed(2)}</span>`:''):'';
+  const note=c.warn?'⚠ Some statements could not be matched to this court\'s own paragraphs — check the cited passages.':c.fixed?'✓ Answer was checked against the judgment and corrected.':'';
+  return `<div class="head">${head}</div><div class="t">${cite(c.a||'')}${c.error?'<div class="err">'+esc(c.error)+'</div>':''}${note?'<div class="note">'+note+'</div>':''}</div>`;
+}
+function showConv(cv){
+  const cfg=ROLE_CONFIG[currentRole]||ROLE_CONFIG.accused;
+  $('chat').innerHTML='<div class="muted" style="padding:8px 0">New chat on this judgment. '+esc(cfg.name==='neutral'?'Ask anything about it.':'Ask tactical questions; the assistant answers from your client\'s perspective.')+'</div>';
+  ((cv&&cv.messages)||[]).forEach(c=>{const rCfg=ROLE_CONFIG[c.role]||ROLE_CONFIG.accused;
+    addMsg('u','<div class="t"><span class="role-badge '+rCfg.name+'" style="margin-right:6px">'+rCfg.prefix+' '+rCfg.name.toUpperCase()+'</span>'+esc(c.q)+'</div>');
+    addMsg('a',answerHtml(c))});
+}
+function showSavedBriefing(){
+  const b=currentResult&&currentResult.case&&currentResult.case.explain&&currentResult.case.explain[currentRole];
+  const cfg=ROLE_CONFIG[currentRole]||ROLE_CONFIG.accused;
+  if(b){$('explain').className='';$('explain').innerHTML=cite(b.text);$('expStat').textContent=(b.model||'')+' · saved '+ago(b.t)}
+  else{$('explain').className='muted';$('explain').textContent=cfg.expPlaceholder;$('expStat').textContent=''}
+}
+
+// ───── explanation ─────
+$('explainBtn').onclick=async()=>{
+  const box=$('explain');box.className='';box.textContent='';$('expStat').textContent='generating strategic brief…';$('explainBtn').disabled=true;let raw='';
+  try{await stream('/api/explain',{headers:{'Content-Type':'application/json'},body:JSON.stringify({role:currentRole})},ev=>{
+    if(ev.type==='token'){raw+=ev.text;box.innerHTML=cite(raw)}
+    else if(ev.type==='error')box.innerHTML+='<div class="err">'+esc(ev.message)+'</div>';
+    else if(ev.type==='done'){const s=ev.stats;$('expStat').textContent=`${s.model||''} · first token ${s.first_token_s??'–'}s`+(s.tokens_per_s?` · ${s.tokens_per_s} tok/s`:'')}})}
+  catch(e){box.innerHTML='<span class="err">'+esc(e.message)+'</span>'}
+  if(currentResult&&currentResult.case&&raw.trim()){currentResult.case.explain=currentResult.case.explain||{};currentResult.case.explain[currentRole]={text:raw,t:Date.now()/1000}}
+  $('explainBtn').disabled=false;
+};
+
+// ───── chat ─────
+function addMsg(cls,html){const c=$('chat');const first=c.firstElementChild;if(first&&first.classList.contains('muted'))c.innerHTML='';const d=document.createElement('div');d.className='msg '+cls;d.innerHTML=html;c.appendChild(d);c.scrollTop=c.scrollHeight;return d}
+async function send(){
+  const m=$('q').value.trim();if(!m||busy)return;$('q').value='';busy=true;$('send').disabled=true;
+  const cfg=ROLE_CONFIG[currentRole]||ROLE_CONFIG.accused;
+  addMsg('u','<div class="t"><span class="role-badge '+cfg.name+'" style="margin-right:6px">'+cfg.prefix+' '+cfg.name.toUpperCase()+'</span>'+esc(m)+'</div>');
+  const a=addMsg('a','<div class="head"></div><div class="t muted">routing…</div><div class="det"></div>');
+  const head=a.querySelector('.head'),t=a.querySelector('.t'),det=a.querySelector('.det');let raw='',fixed=false,warn=false;
+  try{await stream('/api/chat',{headers:{'Content-Type':'application/json'},body:JSON.stringify({message:m,role:currentRole})},ev=>{
+    if(ev.type==='route'){
+      const rCfg=ROLE_CONFIG[ev.role||currentRole]||cfg;
+      head.innerHTML=`<span class="badge ${ev.route}">${ev.route}</span><span class="role-badge ${rCfg.name}" style="margin-right:6px">${rCfg.chatBadge}</span><span class="muted">risk of a wrong answer ${ev.p_fail.toFixed(2)}</span>`;
+      const ps=ev.passages.map(p=>`<div class="pass"><b>${p.where==='judgment'?'['+p.id+']':'['+p.where+']'}</b> rel ${p.relevance} · ${esc(p.text.slice(0,200))}</div>`).join('');
+      det.innerHTML=`<details><summary>How the router decided</summary><div>High signals: ${ev.high_signals.join(', ')||'none'} · query used: “${esc(ev.query)}”</div>${ps}</details>`;
+      t.className='t';t.textContent=''}
+    else if(ev.type==='token'){raw+=ev.text;t.className='t';t.innerHTML=cite(raw);$('chat').scrollTop=$('chat').scrollHeight}
+    else if(ev.type==='revise'){raw='';t.innerHTML='<span class="muted">checking the answer against the judgment…</span>';fixed=true}
+    else if(ev.type==='verify')warn=true
+    else if(ev.type==='title')loadChats()
+    else if(ev.type==='error')t.innerHTML+='<div class="err">'+esc(ev.message)+'</div>'});
+    if(fixed||warn)t.insertAdjacentHTML('beforeend','<div class="note">'+(warn?'⚠ Some statements could not be matched to this court\'s own paragraphs — check the cited passages.':'✓ Answer was checked against the judgment and corrected.')+'</div>')}
+  catch(e){t.innerHTML='<span class="err">'+esc(e.message)+'</span>'}
+  busy=false;refresh();$('q').focus();loadChats();
+}
+$('send').onclick=send;$('q').addEventListener('keydown',e=>{if(e.key==='Enter')send()});
+$('clearChatBtn').onclick=async()=>{try{await api('/api/clear-chat',{method:'POST'});$('chat').innerHTML='<div class="muted" style="padding:8px 0">Chat cleared. Ask about the loaded judgment.</div>';if(currentResult&&currentResult.conv)currentResult.conv.messages=[];loadChats()}catch(_){}};
+updateRoleUI('accused');
+
+</script>
+</body>
+</html>

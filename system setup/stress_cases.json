@@ -1,0 +1,570 @@
+{
+ "_about": "Stress-test questions per judgment. 'match' = start of the PDF file name. Each question: role, q, include = regexes that ALL must appear (case-insensitive), exclude = regexes that must NOT appear. 'chain' = follow-up questions asked in ONE conversation (tests memory). Checks are a quick signal, not a substitute for reading the answers.",
+ "cases": [
+  {
+   "match": "ddc8b48b",
+   "title": "SPO disengagement writ (J&K HC, SWP 2182/2009)",
+   "questions": [
+    {
+     "id": "A1",
+     "role": "neutral",
+     "tests": "fact extraction",
+     "q": "What physical ballistic evidence was recovered from the scene, and exactly which service weapon discharged the round that struck SPO Jaswant Singh?",
+     "include": [
+      "Kulwant",
+      "20 empty"
+     ]
+    },
+    {
+     "id": "A2",
+     "role": "accused",
+     "tests": "procedure",
+     "q": "Was a formal departmental inquiry conducted where the petitioners were given a show-cause notice and a right of hearing before disengagement?",
+     "include": [
+      "\\bno\\b|\\bnot\\b"
+     ],
+     "exclude": [
+      "24\\.04\\.2021"
+     ]
+    },
+    {
+     "id": "A3",
+     "role": "complainant",
+     "tests": "offence mapping (forced-guess trap)",
+     "q": "Based strictly on the allegations recorded in the DD report and the disengagement order, what IPC or BNS offenses could the petitioners be charged with regarding weapon exchange, misfire, and false reporting?",
+     "include": [
+      "\\b33[678]\\b|BNS 125|\\b182\\b|\\b203\\b|BNS 217|BNS 239"
+     ],
+     "exclude": [
+      "\\b307\\b",
+      "\\b302\\b",
+      "attempt to murder",
+      "BNS 109",
+      "BNS 103"
+     ]
+    },
+    {
+     "id": "A4",
+     "role": "neutral",
+     "tests": "statute reading",
+     "q": "Under what statutory provision of the Police Act were the petitioners engaged, and does that provision grant them protection under Article 311 of the Constitution of India?",
+     "include": [
+      "Section 18",
+      "not (?:be )?covered|will not operate|does not|not entitled|not protected|no protection"
+     ]
+    },
+    {
+     "id": "A5",
+     "role": "accused",
+     "tests": "party attribution",
+     "q": "What specific factual and media evidence do the petitioners put forward to rebut the claim that the shooting was an accidental friendly fire?",
+     "include": [
+      "Kashmir Times",
+      "militant|terrorist"
+     ],
+     "exclude": [
+      "premeditated"
+     ]
+    },
+    {
+     "id": "A6",
+     "role": "neutral",
+     "tests": "HALLUCINATION TRAP (no medical officer)",
+     "q": "What was the medical officer's finding regarding the entry wound and the bullet trajectory in SPO Jaswant Singh's shoulder?",
+     "include": [
+      "no medical|not (?:stated|mentioned|recorded)|does not (?:mention|record|contain|state)|records no|no (?:such )?finding"
+     ]
+    },
+    {
+     "id": "A7",
+     "role": "accused",
+     "tests": "legal grounds",
+     "q": "What legal grounds exist under administrative law to challenge the disengagement order of contractual or temporary police personnel when a finding of misconduct is recorded?",
+     "include": [
+      "notice|hearing|natural justice|audi alteram"
+     ],
+     "exclude": [
+      "24\\.04\\.2021"
+     ]
+    },
+    {
+     "id": "A8",
+     "role": "complainant",
+     "tests": "numbers",
+     "q": "What discrepancy was found between the ammunition issued to SPO Uttam Singh and SPO Shakti Kumar versus what was accounted for after the incident?",
+     "include": [
+      "20 rounds",
+      "(?:\\b1\\b|\\b01\\b|one) round"
+     ],
+     "exclude": [
+      "\\b19\\b"
+     ]
+    },
+    {
+     "id": "A9",
+     "role": "neutral",
+     "tests": "legal distinction",
+     "q": "Explain the distinction between a simple termination of a contractual police officer at the end of an exigency versus a stigmatic termination based on alleged misconduct.",
+     "include": [
+      "stigma",
+      "notice|hearing|natural justice"
+     ]
+    },
+    {
+     "id": "A10",
+     "role": "neutral",
+     "tests": "remedy",
+     "q": "If an administrative order of termination is passed purely on an ex-parte preliminary police report without issuing a charge sheet, what is the likely remedy a High Court would grant under writ jurisdiction?",
+     "include": [
+      "set aside|quash"
+     ],
+     "exclude": [
+      "habeas corpus"
+     ]
+    },
+    {
+     "id": "A11",
+     "role": "neutral",
+     "tests": "numbers + identifiers",
+     "q": "On what date was the impugned disengagement order passed and what was its order number?",
+     "include": [
+      "10\\.09\\.2009",
+      "SPO/DIS/09/33700"
+     ]
+    },
+    {
+     "id": "A12",
+     "role": "neutral",
+     "tests": "list every direction",
+     "q": "List all the directions the court gave to the respondents.",
+     "include": [
+      "six weeks|6 weeks",
+      "four weeks|4 weeks|re-engag",
+      "speaking order"
+     ]
+    },
+    {
+     "id": "A13",
+     "role": "accused",
+     "tests": "fact",
+     "q": "Which newspaper reported the incident and on what date?",
+     "include": [
+      "Kashmir Times",
+      "17\\.08\\.2009"
+     ]
+    },
+    {
+     "id": "A14",
+     "role": "neutral",
+     "tests": "court declined to decide",
+     "q": "Did the court decide whether the incident was an accidental discharge or a militant attack?",
+     "include": [
+      "no opinion|not decide|did not|competent authority|does not"
+     ]
+    },
+    {
+     "id": "A15",
+     "role": "neutral",
+     "tests": "VAGUE (should clarify)",
+     "q": "What about the other one?",
+     "expect_clarify": true
+    },
+    {
+     "id": "A16",
+     "role": "neutral",
+     "tests": "VAGUE (should clarify)",
+     "q": "Is it valid?",
+     "expect_clarify": true
+    }
+   ],
+   "chain": [
+    {
+     "q": "Who are the petitioners in this case?",
+     "include": [
+      "Jaswant|Kulwant|Uttam|Shakti"
+     ]
+    },
+    {
+     "q": "Why were they disengaged?",
+     "include": [
+      "exchang|weapon"
+     ]
+    },
+    {
+     "q": "And what did the court finally order for them?",
+     "include": [
+      "re-engag|set aside|fresh"
+     ]
+    }
+   ]
+  },
+  {
+   "match": "0037c0f3",
+   "title": "Ambilwade quashing (Bombay HC, Crl. Appln 1266/2022, SC/ST Atrocities Act)",
+   "questions": [
+    {
+     "id": "B1",
+     "role": "neutral",
+     "tests": "parties + Act",
+     "q": "Who is the applicant, who is the complainant, and what offence is alleged and under which Act?",
+     "include": [
+      "Ambilwade|Chandrakant",
+      "3\\(1\\)|Atrocities|Scheduled"
+     ],
+     "exclude": [
+      "\\b307\\b",
+      "\\b302\\b"
+     ]
+    },
+    {
+     "id": "B2",
+     "role": "accused",
+     "tests": "defence arguments",
+     "q": "What were the main grounds argued by the applicant for quashing the case?",
+     "include": [
+      "CCTV",
+      "delay|three and (?:a )?half weeks|01\\.11\\.2021",
+      "complaint"
+     ]
+    },
+    {
+     "id": "B3",
+     "role": "complainant",
+     "tests": "opposing arguments + precedents",
+     "q": "What did the complainant's counsel argue to oppose quashing, and which Supreme Court cases did he rely on?",
+     "include": [
+      "Bhajan Lal",
+      "Pratima Mohanty",
+      "Deputy|Junior|witness|CCTV"
+     ]
+    },
+    {
+     "id": "B4",
+     "role": "neutral",
+     "tests": "dates",
+     "q": "On what date did the incident take place and on what date was the FIR registered?",
+     "include": [
+      "06\\.10\\.2021|6 October 2021",
+      "01\\.11\\.2021|1 November 2021"
+     ]
+    },
+    {
+     "id": "B5",
+     "role": "neutral",
+     "tests": "precedent application",
+     "q": "Which category from the Bhajan Lal judgment did the court rely on to quash the proceedings?",
+     "include": [
+      "\\(7\\)|seventh|category 7|7th|mala ?fide|malicious"
+     ]
+    },
+    {
+     "id": "B6",
+     "role": "neutral",
+     "tests": "HALLUCINATION TRAP (no forensic report)",
+     "q": "What did the forensic laboratory report on the CCTV pen-drive conclude about tampering?",
+     "include": [
+      "not (?:stated|mentioned|recorded)|no (?:forensic|laboratory|such)|does not (?:mention|record|contain|state)|records no"
+     ]
+    },
+    {
+     "id": "B7",
+     "role": "accused",
+     "tests": "operative order",
+     "q": "What was the final order and what exactly was quashed?",
+     "include": [
+      "81 of 2021",
+      "charge ?-?sheet",
+      "quash"
+     ]
+    },
+    {
+     "id": "B8",
+     "role": "complainant",
+     "tests": "attribution (who said it)",
+     "q": "What happened when the applicant sought discharge before the Special Court?",
+     "include": [
+      "dismiss",
+      "serious"
+     ]
+    },
+    {
+     "id": "B9",
+     "role": "neutral",
+     "tests": "INCONSISTENCY TRAP (FIR dated 2028 in the text)",
+     "q": "The judgment refers to the 'FIR of 16.10.2028'. Is that date consistent with the rest of the record?",
+     "include": [
+      "inconsisten|typo|error|mistake|not consistent|cannot|2021"
+     ]
+    },
+    {
+     "id": "B10",
+     "role": "neutral",
+     "tests": "personal details",
+     "q": "What is the applicant's age and present profession?",
+     "include": [
+      "67",
+      "Advocate"
+     ]
+    },
+    {
+     "id": "B11",
+     "role": "neutral",
+     "tests": "numbers",
+     "q": "At what time did the alleged incident take place?",
+     "include": [
+      "6[:.]15|06[:.]15"
+     ]
+    },
+    {
+     "id": "B12",
+     "role": "neutral",
+     "tests": "list every reason",
+     "q": "List all the reasons the court gave for quashing the case.",
+     "include": [
+      "CCTV",
+      "mala ?fide|malicious|grudge|animosity",
+      "interested witness|dichotomy|place of"
+     ]
+    },
+    {
+     "id": "B13",
+     "role": "neutral",
+     "tests": "fact",
+     "q": "Who was the alleged eyewitness to the incident?",
+     "include": [
+      "Deputy|Junior"
+     ]
+    },
+    {
+     "id": "B14",
+     "role": "neutral",
+     "tests": "precedent text",
+     "q": "What does category (1) of the Bhajan Lal guidelines say?",
+     "include": [
+      "face value|do not prima facie constitute"
+     ]
+    },
+    {
+     "id": "B15",
+     "role": "neutral",
+     "tests": "VAGUE (should clarify)",
+     "q": "And then?",
+     "expect_clarify": true
+    },
+    {
+     "id": "B16",
+     "role": "neutral",
+     "tests": "VAGUE (should clarify)",
+     "q": "Tell me more.",
+     "expect_clarify": true
+    }
+   ],
+   "chain": [
+    {
+     "q": "Who is the complainant?",
+     "include": [
+      "Regional Director|Scheduled Tribe|complainant"
+     ]
+    },
+    {
+     "q": "What does he allege the applicant did?",
+     "include": [
+      "caste|abus"
+     ]
+    },
+    {
+     "q": "Did the court believe him?",
+     "include": [
+      "no|not|mala ?fide|CCTV|doubt"
+     ]
+    }
+   ]
+  },
+  {
+   "match": "657868f5",
+   "title": "Jiyauddin bail (Bombay HC, BA 2792/2026, MCOC Act, long incarceration)",
+   "questions": [
+    {
+     "id": "C1",
+     "role": "neutral",
+     "tests": "provision + charges",
+     "q": "Under which provision was bail sought and for which offences is the applicant charged?",
+     "include": [
+      "483",
+      "395",
+      "397",
+      "MCOC|Organised Crime"
+     ]
+    },
+    {
+     "id": "C2",
+     "role": "accused",
+     "tests": "custody + trial stage",
+     "q": "How long has the applicant been in custody and what is the stage of the trial?",
+     "include": [
+      "8 years,? 9 months",
+      "witness|charge (?:has been )?framed"
+     ]
+    },
+    {
+     "id": "C3",
+     "role": "neutral",
+     "tests": "copy every condition",
+     "q": "List all the bail conditions imposed by the court.",
+     "include": [
+      "25,000",
+      "first Monday",
+      "Maharashtra",
+      "witness|tamper"
+     ]
+    },
+    {
+     "id": "C4",
+     "role": "complainant",
+     "tests": "role strategy without inventing facts",
+     "q": "What grounds could the prosecution raise to oppose bail, based on this order?",
+     "include": [
+      "MCOC|organised crime|gravity|serious"
+     ],
+     "exclude": [
+      "court (?:held|found) (?:him|the applicant) guilty"
+     ]
+    },
+    {
+     "id": "C5",
+     "role": "neutral",
+     "tests": "HALLUCINATION TRAP (no evidence discussed)",
+     "q": "What did the court say about the evidence of the robbery victims and the weapons recovered from the applicant?",
+     "include": [
+      "not (?:stated|discussed|mentioned|record)|no (?:opinion|observation|finding|discussion)|merits|does not (?:mention|record|discuss)|records no"
+     ]
+    },
+    {
+     "id": "C6",
+     "role": "neutral",
+     "tests": "precedent details",
+     "q": "Which court decided Emperor v. H.L. Hutchinson, in which year, and what principle did it lay down?",
+     "include": [
+      "Allahabad",
+      "1931",
+      "rule"
+     ]
+    },
+    {
+     "id": "C7",
+     "role": "neutral",
+     "tests": "PRECEDENT CONFUSION TRAP",
+     "q": "Was the applicant granted bail on parity with a co-accused?",
+     "include": [
+      "incarcerat|custody|8 years"
+     ],
+     "exclude": [
+      "(?:was|is) granted bail on (?:the ground of )?parity"
+     ]
+    },
+    {
+     "id": "C8",
+     "role": "neutral",
+     "tests": "numbers in long text",
+     "q": "What does the judgment say about overcrowding in Mumbai Central Prison?",
+     "include": [
+      "5\\s*[-–]\\s*6|five to six",
+      "220\\s*[-–]\\s*250",
+      "\\b50\\b"
+     ]
+    },
+    {
+     "id": "C9",
+     "role": "accused",
+     "tests": "merits",
+     "q": "Did the court make any finding on the merits of the case against the applicant?",
+     "include": [
+      "\\bno\\b|\\bnot\\b|without"
+     ]
+    },
+    {
+     "id": "C10",
+     "role": "neutral",
+     "tests": "identifiers",
+     "q": "What is the crime register number and which police station registered it?",
+     "include": [
+      "205 of 2017",
+      "Taloja"
+     ]
+    },
+    {
+     "id": "C11",
+     "role": "neutral",
+     "tests": "numbers",
+     "q": "What is the amount of the personal bond?",
+     "include": [
+      "25,000"
+     ]
+    },
+    {
+     "id": "C12",
+     "role": "neutral",
+     "tests": "list precedents",
+     "q": "List the Supreme Court judgments cited on the right to a speedy trial.",
+     "include": [
+      "Hussainara",
+      "Antulay"
+     ]
+    },
+    {
+     "id": "C13",
+     "role": "neutral",
+     "tests": "fact in long text",
+     "q": "Which prison report was placed before the court, by whom, and what was its date?",
+     "include": [
+      "12\\.12\\.2024",
+      "Superintendent"
+     ]
+    },
+    {
+     "id": "C14",
+     "role": "neutral",
+     "tests": "precedent principle",
+     "q": "What principle did Satender Kumar Antil v. CBI reiterate?",
+     "include": [
+      "bail is the rule|jail is the exception"
+     ]
+    },
+    {
+     "id": "C15",
+     "role": "neutral",
+     "tests": "VAGUE (should clarify)",
+     "q": "What about the other case?",
+     "expect_clarify": true
+    },
+    {
+     "id": "C16",
+     "role": "neutral",
+     "tests": "VAGUE (should clarify)",
+     "q": "Why?",
+     "expect_clarify": true
+    }
+   ],
+   "chain": [
+    {
+     "q": "Who is the applicant?",
+     "include": [
+      "Jiyauddin|Khan"
+     ]
+    },
+    {
+     "q": "How long has he been in jail?",
+     "include": [
+      "8 years"
+     ]
+    },
+    {
+     "q": "What must he do every month after release?",
+     "include": [
+      "first Monday|report"
+     ]
+    }
+   ]
+  }
+ ]
+}

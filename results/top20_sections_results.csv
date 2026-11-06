@@ -1,0 +1,19 @@
+view,system,precision,recall,f1,macro-F1
+full,"Llama zero-shot · key passages, lists sections",0.585,0.588,0.586,0.584
+full,"Fine-tuned Llama · key passages, lists sections",0.635,0.595,0.614,0.587
+full,Hyena encoder ensemble (no LLM),0.654,0.683,0.668,0.645
+full,Hyena encoder ensemble + per-section thresholds,0.663,0.702,0.682,0.658
+full,Llama zero-shot · verifies encoder shortlist,0.626,0.746,0.68,0.625
+full,Fine-tuned verifier · encoder shortlist,0.713,0.685,0.698,0.68
+full,Fine-tuned verifier · FREQUENCY shortlist (no encoder),0.658,0.595,0.625,0.586
+full,Hybrid fused · one threshold,0.722,0.698,0.709,0.691
+full,Hybrid fused · per-section thresholds (ours),0.735,0.715,0.725,0.71
+facts,"Llama zero-shot · key passages, lists sections",0.587,0.585,0.586,0.584
+facts,"Fine-tuned Llama · key passages, lists sections",0.658,0.59,0.622,0.589
+facts,Hyena encoder ensemble (no LLM),0.67,0.672,0.671,0.652
+facts,Hyena encoder ensemble + per-section thresholds,0.678,0.678,0.678,0.66
+facts,Llama zero-shot · verifies encoder shortlist,0.635,0.746,0.686,0.635
+facts,Fine-tuned verifier · encoder shortlist,0.701,0.691,0.695,0.676
+facts,Fine-tuned verifier · FREQUENCY shortlist (no encoder),0.649,0.592,0.619,0.585
+facts,Hybrid fused · one threshold,0.737,0.702,0.719,0.709
+facts,Hybrid fused · per-section thresholds (ours),0.744,0.72,0.732,0.725
